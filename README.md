@@ -100,10 +100,36 @@ Broadcasters encode in multiple quality layers (simulcast). Viewers receive the 
 ### Distributed Amplification
 Supporters can independently restream to YouTube, Facebook, TikTok, and Instagram. The broadcaster stays on oneye (decentralized, ephemeral) while amplifiers spread the message through centralized platforms. Multiple amplifiers = wider reach.
 
+### Map View
+See streams on an interactive map. Broadcasters can optionally share their location with configurable precision (exact, neighborhood, city, or region). Theme-aware map tiles adapt to light/dark mode.
+
+### Settings & Preferences
+User preferences persist in localStorage:
+- **Theme**: System, Dark, or Light mode with full light theme support
+- **Auto-play**: Control whether streams play automatically
+- **Location**: Remember location permission and default precision
+- **Notifications**: Browser notifications for new streams
+- **Default View**: Start with Live Streams, Archives, or Map
+
+### Mobile-First Design
+- **Hamburger menu**: Full navigation on mobile with Live/Archives/Map tabs
+- **Categories grid**: Browse categories in a 2-column layout
+- **Touch-friendly**: Tap-to-toggle tooltips and responsive controls
+- **Adaptive UI**: Sidebar collapses to icons, expands on interaction
+
+### Broadcast Setup
+Before going live, configure your stream:
+- Set a title
+- Choose categories and add custom tags
+- Enable/disable location sharing
+- Select location precision level
+- Enable server-side recording (optional)
+
 ### Privacy by Design
 - **Ephemeral**: Streams exist only while live. Nothing is recorded.
 - **No accounts**: Your identity is a keypair stored in your browser.
 - **No tracking**: No analytics, no cookies, no persistent data on relays.
+- **Location control**: Choose exact, neighborhood, city, or region-level precision.
 
 ## Amplify a Stream
 
