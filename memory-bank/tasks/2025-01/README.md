@@ -1,5 +1,25 @@
 # January 2025 Tasks
 
+## 2025-01-26: Viewer Controls & Z-Index Fixes
+
+Modernized viewer controls and fixed modal stacking above Leaflet map.
+
+### Changes
+- Viewer controls redesign with SVG icons and glass morphism styling
+- QR code sharing button for viewers
+- Fixed z-index stacking: modals now appear above Leaflet map layers
+- Settings modal: 1000, Amplify modal: 1000, Broadcast setup: 950, Mobile nav: 900
+
+### Files Modified
+- `index.html` - CSS and HTML updates
+
+### Pattern
+Leaflet default z-indexes go up to ~700. All modals now use z-index 900-1000 to ensure proper stacking.
+
+See: [260126_viewer-controls-zindex.md](./260126_viewer-controls-zindex.md)
+
+---
+
 ## 2025-01-26: Settings System & Mobile UI
 
 Implemented comprehensive Settings system with theme support and mobile-first navigation.

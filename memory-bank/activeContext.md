@@ -2,7 +2,32 @@
 
 ## Current State (2025-01-26)
 
-### Recently Completed: Settings System & Mobile UI
+### Recently Completed: Viewer Controls & Z-Index Fixes
+
+Modernized viewer controls UI and fixed modal z-index stacking issues with Leaflet map.
+
+#### Viewer Controls
+- SVG icons for PiP, Fullscreen, Pop Out buttons
+- QR code sharing button for viewers
+- Grouped controls with subtle dividers
+- Glass morphism styling with 40px touch targets
+- Accent glow on Amplify button
+
+#### Z-Index Hierarchy (Fixed)
+Leaflet map layers have high default z-indexes (tiles: 200, markers: 600+). Updated modal z-indexes:
+
+| Element | Z-Index |
+|---------|---------|
+| `.settings-modal` | 1000 |
+| `.modal` (amplify) | 1000 |
+| `.broadcast-setup` | 950 |
+| `.mobile-nav` | 900 |
+| Leaflet popups | ~700 |
+| `.viewer-overlay` | 100 |
+
+---
+
+### Previously: Settings System & Mobile UI
 
 Implemented comprehensive Settings system with theme support, mobile-first navigation, and UI polish.
 
