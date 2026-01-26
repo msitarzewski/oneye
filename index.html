@@ -1033,23 +1033,23 @@ body.broadcasting .qr-overlay .qr-hint {
   box-shadow: 0 0 20px var(--accent-glow);
 }
 
-/* Viewer Controls - Sci-fi HUD style (hidden until hover/touch) */
+/* Viewer Controls - Modern glass style (hidden until hover/touch) */
 .viewer-controls {
   position: absolute;
-  bottom: 20px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%) translateY(10px);
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: var(--glass);
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  padding: 8px 10px;
-  border-radius: var(--radius);
-  border: 1px solid var(--glass-border);
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 101;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   opacity: 0;
   transition: opacity 0.3s, transform 0.3s;
   pointer-events: none;
@@ -1073,75 +1073,169 @@ body.broadcasting .qr-overlay .qr-hint {
   opacity: 1;
 }
 
-.viewer-controls button,
-.viewer-controls select {
-  height: 36px;
-  border-radius: 6px;
+.viewer-control-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.viewer-control-group + .viewer-control-group {
+  padding-left: 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.viewer-controls button {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--glass-border);
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
-.viewer-controls button {
-  width: 36px;
-  font-size: 14px;
-}
-
-.viewer-controls button:hover,
-.viewer-controls select:hover {
+.viewer-controls button:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: var(--accent);
-  box-shadow: 0 0 15px var(--accent-glow);
+  color: white;
+  transform: scale(1.05);
+}
+
+.viewer-controls button:active {
+  transform: scale(0.95);
 }
 
 .viewer-controls select {
-  padding: 0 10px;
-  min-width: 70px;
+  height: 40px;
+  padding: 0 32px 0 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='rgba(255,255,255,0.7)' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 8px center;
-  padding-right: 24px;
+  background-position: right 10px center;
+  transition: all 0.2s ease;
+}
+
+.viewer-controls select:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--accent);
 }
 
 .viewer-controls select:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
 .viewer-controls .amplify-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: var(--accent);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   text-decoration: none;
-  padding: 8px 10px;
-  border-radius: 6px;
-  transition: all 0.2s;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .viewer-controls .amplify-link:hover {
-  background: var(--accent-glow);
-  text-shadow: 0 0 10px var(--accent);
+  background: rgba(0, 212, 255, 0.25);
+  border-color: var(--accent);
+  transform: scale(1.02);
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.viewer-controls .amplify-link svg {
+  opacity: 0.9;
 }
 
 @media (max-width: 500px) {
   .viewer-controls {
-    gap: 4px;
-    padding: 6px 8px;
-    bottom: 12px;
+    gap: 8px;
+    padding: 8px 12px;
+    bottom: 16px;
+    border-radius: 14px;
   }
-  .viewer-controls button { width: 32px; height: 32px; font-size: 12px; }
-  .viewer-controls select { height: 32px; min-width: 60px; font-size: 11px; }
-  .viewer-controls .amplify-link { padding: 6px 8px; font-size: 10px; }
+  .viewer-control-group {
+    gap: 2px;
+  }
+  .viewer-control-group + .viewer-control-group {
+    padding-left: 8px;
+  }
+  .viewer-controls button {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  .viewer-controls button svg {
+    width: 16px;
+    height: 16px;
+  }
+  .viewer-controls select {
+    height: 36px;
+    padding: 0 28px 0 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .viewer-controls .amplify-link {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .viewer-controls .amplify-link svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* Viewer QR Overlay */
+.viewer-qr-overlay {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  z-index: 102;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.viewer-qr-overlay.visible {
+  display: block;
+}
+
+.viewer-qr-overlay canvas,
+.viewer-qr-overlay img,
+#viewerQrContainer {
+  display: block;
+  width: 200px;
+  height: 200px;
+}
+
+.viewer-qr-hint {
+  text-align: center;
+  font-size: 13px;
+  color: #333;
+  margin-top: 12px;
+  font-weight: 600;
 }
 
 /* Connection Overlay - Sci-fi style */
@@ -3284,15 +3378,48 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   </div>
 
   <div class="viewer-controls" id="viewerControls">
-    <select id="qualitySelect" title="Video quality">
-      <option value="h">720p</option>
-      <option value="m">360p</option>
-      <option value="l">180p</option>
-    </select>
-    <button id="pipBtn" title="Picture-in-Picture">PiP</button>
-    <button id="fullscreenBtn" title="Fullscreen">&#x26F6;</button>
-    <button id="popOutBtn" title="Pop out for capture">Pop Out</button>
-    <a href="#" class="amplify-link" id="amplifyHelp">How to Amplify</a>
+    <div class="viewer-control-group">
+      <select id="qualitySelect" title="Video quality">
+        <option value="h">720p</option>
+        <option value="m">360p</option>
+        <option value="l">180p</option>
+      </select>
+    </div>
+    <div class="viewer-control-group">
+      <button id="pipBtn" title="Picture-in-Picture">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <rect x="12" y="10" width="8" height="6" rx="1" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
+      <button id="fullscreenBtn" title="Fullscreen">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+        </svg>
+      </button>
+      <button id="popOutBtn" title="Pop out for capture">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      </button>
+      <button id="viewerQrBtn" title="Share QR code">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm11-2h2v2h-2v-2zm-4 0h2v4h-2v-4zm4 4h4v2h-4v-2zm0 4h4v2h-4v-2zm-4 0h2v2h-2v-2z"/>
+        </svg>
+      </button>
+    </div>
+    <a href="#" class="amplify-link" id="amplifyHelp">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      Amplify
+    </a>
+  </div>
+  <div class="viewer-qr-overlay" id="viewerQrOverlay">
+    <div id="viewerQrContainer"></div>
+    <div class="viewer-qr-hint">Scan to watch</div>
   </div>
 </div>
 
@@ -3982,6 +4109,31 @@ const Amplify = (() => {
     document.getElementById('popOutFromModal')?.addEventListener('click', () => {
       hideAmplifyModal();
       popOutViewer();
+    });
+
+    // Viewer QR code
+    const viewerQrBtn = document.getElementById('viewerQrBtn');
+    const viewerQrOverlay = document.getElementById('viewerQrOverlay');
+    const viewerQrContainer = document.getElementById('viewerQrContainer');
+
+    viewerQrBtn?.addEventListener('click', () => {
+      const url = window.location.href;
+      viewerQrContainer.innerHTML = '';
+      if (window.QRCode) {
+        new window.QRCode(viewerQrContainer, {
+          text: url,
+          width: 200,
+          height: 200,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: window.QRCode.CorrectLevel.L
+        });
+      }
+      viewerQrOverlay?.classList.toggle('visible');
+    });
+
+    viewerQrOverlay?.addEventListener('click', () => {
+      viewerQrOverlay.classList.remove('visible');
     });
 
     // Keyboard shortcut for info toggle in amplify mode
