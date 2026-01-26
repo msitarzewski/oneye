@@ -1,5 +1,26 @@
 # January 2025 Tasks
 
+## 2025-01-26: Relay Stats Display
+
+Added live connected user count with activity breakdown to footer.
+
+### Changes
+- Footer shows total connected users (bottom-left, mirrors connection indicator)
+- Detailed breakdown: "👥 243 · 12 live · 200 watching"
+- Server broadcasts `relay_stats` on connect/disconnect
+- Real-time updates as users join/leave or change roles
+
+### Files Modified
+- `server.js` - `broadcastRelayStats()`, `getRelayStats()`, welcome message
+- `index.html` - HTML element, CSS, message handler, `updateRelayStats()`
+
+### Pattern
+Server counts clients by role (`broadcaster`, `viewer`, or idle). Broadcasts stats on any client connect/disconnect. Stats included in welcome message for immediate display.
+
+See: [260126_relay-stats-footer.md](./260126_relay-stats-footer.md)
+
+---
+
 ## 2025-01-26: Viewer Controls & Z-Index Fixes
 
 Modernized viewer controls and fixed modal stacking above Leaflet map.

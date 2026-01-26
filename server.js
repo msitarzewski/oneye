@@ -115,21 +115,28 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     handleDisconnect(ws);
     clients.delete(ws);
+    broadcastRelayStats();
   });
 
   ws.on('error', () => {
     handleDisconnect(ws);
     clients.delete(ws);
+    broadcastRelayStats();
   });
 
   // Include relay list in welcome (Phase 1.3)
   const streamList = getStreamList();
   console.log(`[Welcome] New client, sending ${streamList.length} streams`);
+  const stats = getRelayStats();
   send(ws, {
     type: 'welcome',
     streams: streamList,
-    relays: getRelayList()
+    relays: getRelayList(),
+    ...stats
   });
+
+  // Broadcast updated client count to all
+  broadcastRelayStats();
 });
 
 // Ping interval
@@ -233,6 +240,7 @@ function handleUnannounce(ws, msg) {
   state.streamId = null;
 
   send(ws, { type: 'unannounced', streamId });
+  broadcastRelayStats();
 }
 
 async function handleAnnounce(ws, msg) {
@@ -279,6 +287,7 @@ async function handleAnnounce(ws, msg) {
   announceToSwarm(presence);
 
   send(ws, { type: 'announced', streamId });
+  broadcastRelayStats();
   console.log(`[Announce] Stream ${streamId.slice(0, 8)} from ${presence.pubkey.slice(0, 8)}, total streams: ${streams.size}, broadcasting to ${clients.size - 1} clients`);
 }
 
@@ -325,6 +334,7 @@ async function handleView(ws, msg) {
 
   // Broadcast updated viewer count
   broadcastViewerCount(streamId);
+  broadcastRelayStats();
 
   // Phase 4: Check if we should route through a mesh forwarder
   if (viaForwarder) {
@@ -391,6 +401,7 @@ function handleStopViewing(ws, msg) {
   if (state.role === 'viewer') {
     state.role = null;
     state.streamId = null;
+    broadcastRelayStats();
   }
 }
 
@@ -1110,6 +1121,25 @@ function handleDHTPresence(presence) {
 // Broadcast relay list updates to clients (Phase 1.3)
 function broadcastRelayUpdate() {
   broadcast({ type: 'relay_update', relays: getRelayList() });
+}
+
+// Broadcast connected client count to all clients
+function broadcastRelayStats() {
+  let broadcasters = 0, viewers = 0;
+  for (const state of clients.values()) {
+    if (state.role === 'broadcaster') broadcasters++;
+    else if (state.role === 'viewer') viewers++;
+  }
+  broadcast({ type: 'relay_stats', clients: clients.size, broadcasters, viewers });
+}
+
+function getRelayStats() {
+  let broadcasters = 0, viewers = 0;
+  for (const state of clients.values()) {
+    if (state.role === 'broadcaster') broadcasters++;
+    else if (state.role === 'viewer') viewers++;
+  }
+  return { clients: clients.size, broadcasters, viewers };
 }
 
 // --- Presence & Relay Expiry ---

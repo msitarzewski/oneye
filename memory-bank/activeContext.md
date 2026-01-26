@@ -2,7 +2,25 @@
 
 ## Current State (2025-01-26)
 
-### Recently Completed: Viewer Controls & Z-Index Fixes
+### Recently Completed: Relay Stats Display
+
+Added live user count with activity breakdown in footer (bottom-left).
+
+#### Features
+- Shows total connected users to current relay
+- Detailed breakdown: `👥 243 · 12 live · 200 watching`
+- Real-time updates on connect/disconnect and role changes
+- Styled to match connection indicator (right side)
+
+#### Implementation
+- Server tracks `broadcasters` (role=broadcaster) and `viewers` (role=viewer)
+- New `relay_stats` message type broadcast on client connect/disconnect
+- Stats included in welcome message for immediate display
+- CSS: `.relay-stats`, `.relay-stats-detail`
+
+---
+
+### Previously: Viewer Controls & Z-Index Fixes
 
 Modernized viewer controls UI and fixed modal z-index stacking issues with Leaflet map.
 

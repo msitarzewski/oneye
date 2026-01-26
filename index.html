@@ -69,6 +69,14 @@
     --glass: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(0, 0, 0, 0.08);
   }
+  :root:not([data-theme]) footer {
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.75),
+      rgba(255, 255, 255, 0.9)
+    );
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.08);
+  }
 }
 
 body {
@@ -397,11 +405,12 @@ main {
   flex: 1;
   display: flex;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
+  padding-bottom: 70px;
 }
 
 main.app-layout {
-  padding: 0;
+  padding: 0 0 70px 0;
 }
 
 /* Masonry-style grid */
@@ -1476,17 +1485,62 @@ body.broadcasting .qr-overlay .qr-hint {
 }
 
 footer {
-  position: relative;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   padding: 14px 20px;
   border-top: 1px solid var(--glass-border);
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: linear-gradient(
+    to bottom,
+    rgba(13, 13, 20, 0.7),
+    rgba(13, 13, 20, 0.85)
+  );
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+[data-theme="light"] footer {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.75),
+    rgba(255, 255, 255, 0.9)
+  );
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.08);
+}
+
+.relay-stats {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-family: 'SF Mono', monospace;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.relay-stats:hover {
+  opacity: 1;
+}
+
+.relay-stats svg {
+  opacity: 0.8;
+}
+
+.relay-stats-detail {
+  opacity: 0.7;
 }
 
 .connection-indicator {
@@ -3435,6 +3489,13 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
 </div>
 
 <footer>
+  <div class="relay-stats" id="relayStats">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+    </svg>
+    <span id="relayUsersCount">-</span>
+    <span class="relay-stats-detail" id="relayStatsDetail"></span>
+  </div>
   <button class="btn btn-live" id="goLiveBtn" disabled>Go Live</button>
   <button class="connection-indicator" id="connIndicator">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -3814,6 +3875,9 @@ const Discovery = (() => {
               if (onStreamAvailable) onStreamAvailable(p);
             });
           }
+          if (typeof msg.clients === 'number') {
+            updateRelayStats(msg.clients, msg.broadcasters || 0, msg.viewers || 0);
+          }
         }
         break;
       case 'relay_update':
@@ -3866,6 +3930,11 @@ const Discovery = (() => {
           UI.updateViewerCount(msg.streamId, msg.count);
         }
         break;
+      case 'relay_stats':
+        if (typeof msg.clients === 'number') {
+          updateRelayStats(msg.clients, msg.broadcasters || 0, msg.viewers || 0);
+        }
+        break;
       case 'thumbnail':
         if (msg.streamId && msg.data) {
           Thumbnail.updatePreview(msg.streamId, msg.data);
@@ -3902,6 +3971,18 @@ const Discovery = (() => {
   function getRelays() { return Array.from(relayMap.values()); }
   function getCurrentRelay() { return currentRelayUrl; }
   function isConnected() { return ws && ws.readyState === WebSocket.OPEN; }
+
+  function updateRelayStats(clients, broadcasters, viewers) {
+    const countEl = document.getElementById('relayUsersCount');
+    const detailEl = document.getElementById('relayStatsDetail');
+    if (countEl) countEl.textContent = clients;
+    if (detailEl) {
+      const parts = [];
+      if (broadcasters > 0) parts.push(`${broadcasters} live`);
+      if (viewers > 0) parts.push(`${viewers} watching`);
+      detailEl.textContent = parts.length ? '· ' + parts.join(' · ') : '';
+    }
+  }
 
   return {
     connect, send, getStreams, getRelays, getCurrentRelay, isConnected,
