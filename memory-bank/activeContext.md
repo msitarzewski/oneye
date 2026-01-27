@@ -1,8 +1,26 @@
 # Active Context - oneye
 
-## Current State (2025-01-26)
+## Current State (2025-01-27)
 
-### Recently Completed: Server-Side Stream Recording
+### Recently Completed: Location Reverse Geocoding
+
+Implemented reverse geocoding so location displays human-readable names instead of coordinates.
+
+#### Features
+- Uses Nominatim (OpenStreetMap) API - no API key or CDN required
+- Labels adapt to precision level (neighborhood → city → region → country)
+- Address data cached for reformatting when precision changes
+- Non-blocking: geocoding happens in background after position acquired
+
+#### Implementation
+- `reverseGeocode(lat, lng)` - calls Nominatim API
+- `formatLabel(addrData)` - formats based on precision
+- `currentLocation.addressData` caches full address components
+- `currentLocation.label` updated after geocoding or precision change
+
+---
+
+### Previously: Server-Side Stream Recording
 
 Restored server-side recording using werift's built-in WebM recording (no ffmpeg).
 
@@ -12,16 +30,6 @@ Restored server-side recording using werift's built-in WebM recording (no ffmpeg
 - HTTP endpoints for archive index and file serving
 - Archive playback in client with thumbnail display
 - No external dependencies (all werift built-in)
-
-#### Implementation
-- `werift/nonstandard` MediaRecorder handles RTP→WebM conversion
-- Recording triggered when `presence.stream.recording === true`
-- Files saved to `archives/{streamId}/` (recording.webm, metadata.json, thumbnail.jpg)
-- Peak viewer count tracked during recording
-
-#### Endpoints
-- `GET /archives` - Returns archive index.json
-- `GET /archives/:id/*` - Serves recording files with proper MIME types
 
 ---
 

@@ -1,5 +1,25 @@
 # January 2025 Tasks
 
+## 2025-01-27: Location Reverse Geocoding
+
+Implemented reverse geocoding so location displays human-readable names instead of coordinates.
+
+### Changes
+- `reverseGeocode()` function using Nominatim (OpenStreetMap) API
+- `formatLabel()` formats address based on precision level
+- Label cached in `currentLocation` and reformatted when precision changes
+- No API key or CDN required
+
+### Files Modified
+- `index.html` - Location module functions
+
+### Pattern
+Background geocoding after position acquired (non-blocking). Address data cached for reformatting. Labels adapt to precision: "Neighborhood, City" → "City, State" → "State, Country" → "Country".
+
+See: [270127_location-geocoding.md](./270127_location-geocoding.md)
+
+---
+
 ## 2025-01-26: Server-Side Stream Recording
 
 Restored server-side recording using werift's built-in WebM recording (no ffmpeg).
