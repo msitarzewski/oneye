@@ -2,7 +2,30 @@
 
 ## Current State (2025-01-26)
 
-### Recently Completed: Relay Stats Display
+### Recently Completed: Server-Side Stream Recording
+
+Restored server-side recording using werift's built-in WebM recording (no ffmpeg).
+
+#### Features
+- Records both audio (Opus) and video (VP8) to WebM container
+- Saves thumbnail from last preview frame
+- HTTP endpoints for archive index and file serving
+- Archive playback in client with thumbnail display
+- No external dependencies (all werift built-in)
+
+#### Implementation
+- `werift/nonstandard` MediaRecorder handles RTP→WebM conversion
+- Recording triggered when `presence.stream.recording === true`
+- Files saved to `archives/{streamId}/` (recording.webm, metadata.json, thumbnail.jpg)
+- Peak viewer count tracked during recording
+
+#### Endpoints
+- `GET /archives` - Returns archive index.json
+- `GET /archives/:id/*` - Serves recording files with proper MIME types
+
+---
+
+### Previously: Relay Stats Display
 
 Added live user count with activity breakdown in footer (bottom-left).
 
@@ -165,7 +188,7 @@ User changes setting in modal
 
 ### Known Issues / TODOs
 
-1. Archive cards don't have thumbnails (server doesn't generate them yet)
+1. ~~Archive cards don't have thumbnails~~ - Fixed: thumbnails saved on stream end
 2. Search only filters by title, not tags
 3. Location reverse geocoding not implemented (shows coords)
 4. Notifications permission request needs testing

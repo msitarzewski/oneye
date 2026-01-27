@@ -1,16 +1,28 @@
 import { createServer } from 'http';
-import { readFile } from 'fs/promises';
+import { readFile, mkdir, writeFile, readFile as fsReadFile, stat } from 'fs/promises';
+import { createReadStream } from 'fs';
+import path from 'path';
 import { WebSocketServer } from 'ws';
 import Hyperswarm from 'hyperswarm';
 import crypto from 'crypto';
 import { WebSocket } from 'ws';
 import os from 'os';
 
+const ARCHIVES_DIR = path.join(process.cwd(), 'archives');
+
 // werift imported dynamically to handle missing native deps gracefully
 let werift;
+let weriftNonstandard;
 try {
   werift = await import('werift');
   console.log('[SFU] werift loaded successfully');
+  // Import nonstandard module for MediaRecorder
+  try {
+    weriftNonstandard = await import('werift/nonstandard');
+    console.log('[SFU] werift/nonstandard loaded (MediaRecorder available)');
+  } catch (e) {
+    console.warn('[SFU] werift/nonstandard unavailable, recording disabled:', e.message);
+  }
 } catch (e) {
   console.warn('[SFU] werift unavailable, WebRTC disabled:', e.message);
 }
@@ -100,6 +112,51 @@ const server = createServer(async (req, res) => {
       application_type: 'web',
       dpop_bound_access_tokens: true
     }));
+  } else if (pathname === '/archives') {
+    // Serve archive index
+    try {
+      const indexPath = path.join(ARCHIVES_DIR, 'index.json');
+      const data = await fsReadFile(indexPath);
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(data);
+    } catch {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ version: 1, archives: [] }));
+    }
+  } else if (pathname.startsWith('/archives/')) {
+    // Serve recording files
+    const relativePath = pathname.slice('/archives/'.length);
+    const filePath = path.join(ARCHIVES_DIR, relativePath);
+    // Security check - prevent directory traversal
+    if (!filePath.startsWith(ARCHIVES_DIR + path.sep)) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+    try {
+      const fileStat = await stat(filePath);
+      const ext = path.extname(filePath).toLowerCase();
+      const contentTypes = {
+        '.webm': 'video/webm',
+        '.json': 'application/json',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.webp': 'image/webp'
+      };
+      res.writeHead(200, {
+        'Content-Type': contentTypes[ext] || 'application/octet-stream',
+        'Content-Length': fileStat.size,
+        'Access-Control-Allow-Origin': '*'
+      });
+      createReadStream(filePath).pipe(res);
+    } catch {
+      res.writeHead(404);
+      res.end('Not found');
+    }
   } else {
     res.writeHead(404);
     res.end('Not found');
@@ -233,6 +290,10 @@ function handleUnannounce(ws, msg) {
 
   const stream = streams.get(streamId);
   if (stream) {
+    // Stop recording if active
+    if (stream.recording) {
+      stopRecording(streamId, stream);
+    }
     // Close producer PC
     if (stream.producerPC) {
       try { stream.producerPC.close(); } catch {}
@@ -294,7 +355,14 @@ async function handleAnnounce(ws, msg) {
       producerPC: null,
       producerTracks: [],
       consumers: new Set(),
-      lastSeen: Date.now()
+      lastSeen: Date.now(),
+      recording: presence.stream.recording ? {
+        startedAt: Date.now(),
+        dir: path.join(ARCHIVES_DIR, streamId),
+        recorder: null,
+        pendingTracks: [],
+        peakViewers: 0
+      } : null
     });
   }
 
@@ -349,6 +417,14 @@ async function handleView(ws, msg) {
   state.role = 'viewer';
   state.streamId = streamId;
   stream.consumers.add(ws);
+
+  // Track peak viewers for recording
+  if (stream.recording) {
+    stream.recording.peakViewers = Math.max(
+      stream.recording.peakViewers,
+      stream.consumers.size
+    );
+  }
 
   // Broadcast updated viewer count
   broadcastViewerCount(streamId);
@@ -703,6 +779,159 @@ async function handleCandidate(ws, msg) {
   }
 }
 
+// --- Recording Functions ---
+async function startTrackRecording(stream, track) {
+  if (!weriftNonstandard?.MediaRecorder) {
+    console.warn('[Recording] MediaRecorder not available');
+    return;
+  }
+
+  await mkdir(stream.recording.dir, { recursive: true });
+
+  // Log track details for debugging
+  console.log(`[Recording] Track received: ${track.kind}, codec=${track.codec?.name}, payloadType=${track.codec?.payloadType}`);
+
+  // Add track to pending tracks
+  if (!stream.recording.pendingTracks) {
+    stream.recording.pendingTracks = [];
+  }
+  stream.recording.pendingTracks.push(track);
+
+  // Wait for both audio and video tracks before starting recorder
+  const hasVideo = stream.recording.pendingTracks.some(t => t.kind === 'video');
+  const hasAudio = stream.recording.pendingTracks.some(t => t.kind === 'audio');
+
+  console.log(`[Recording] Pending tracks: ${stream.recording.pendingTracks.length}, hasVideo=${hasVideo}, hasAudio=${hasAudio}`);
+
+  if (hasVideo && hasAudio && !stream.recording.recorder) {
+    const outputPath = path.join(stream.recording.dir, 'recording.webm');
+    console.log(`[Recording] Starting MediaRecorder for ${stream.presence.stream.id.slice(0, 8)}`);
+    console.log(`[Recording] Output path: ${outputPath}`);
+
+    try {
+      // Log each track's codec info
+      stream.recording.pendingTracks.forEach((t, i) => {
+        console.log(`[Recording] Track ${i}: kind=${t.kind}, codec=${t.codec?.name}, pt=${t.codec?.payloadType}`);
+      });
+
+      stream.recording.recorder = new weriftNonstandard.MediaRecorder({
+        path: outputPath,
+        tracks: stream.recording.pendingTracks,
+        numOfTracks: 2,
+        width: 1280,
+        height: 720
+      });
+
+      stream.recording.recorder.onError.subscribe((error) => {
+        console.error('[Recording] MediaRecorder error:', error.message);
+      });
+
+      console.log(`[Recording] Started: ${stream.presence.stream.id.slice(0, 8)}`);
+    } catch (e) {
+      console.error('[Recording] Failed to create MediaRecorder:', e.message, e.stack);
+    }
+  }
+}
+
+async function stopRecording(streamId, stream) {
+  if (!stream.recording) return;
+
+  console.log(`[Recording] Stopping: ${streamId.slice(0, 8)}`);
+
+  // Stop the MediaRecorder
+  if (stream.recording.recorder) {
+    try {
+      await stream.recording.recorder.stop();
+      console.log(`[Recording] MediaRecorder stopped`);
+    } catch (e) {
+      console.error('[Recording] Error stopping recorder:', e.message);
+    }
+  }
+
+  // Save thumbnail if available
+  if (stream.thumbnail) {
+    try {
+      // thumbnail is base64 data URL like "data:image/jpeg;base64,..."
+      const matches = stream.thumbnail.match(/^data:image\/(\w+);base64,(.+)$/);
+      if (matches) {
+        const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+        const data = Buffer.from(matches[2], 'base64');
+        const thumbPath = path.join(stream.recording.dir, `thumbnail.${ext}`);
+        await writeFile(thumbPath, data);
+        stream.recording.thumbnailExt = ext;
+        console.log(`[Recording] Saved thumbnail: ${thumbPath}`);
+      }
+    } catch (e) {
+      console.error('[Recording] Failed to save thumbnail:', e.message);
+    }
+  }
+
+  // Update archive index
+  await finalizeRecording(streamId, stream).catch(e =>
+    console.error('[Recording] Finalize failed:', e)
+  );
+}
+
+async function finalizeRecording(streamId, stream) {
+  const outputPath = path.join(stream.recording.dir, 'recording.webm');
+
+  // Wait for file to be written
+  await new Promise(r => setTimeout(r, 500));
+
+  // Get file size
+  let fileSize = 0;
+  try {
+    const stats = await stat(outputPath);
+    fileSize = stats.size;
+  } catch {}
+
+  // Create metadata.json
+  const metadata = {
+    id: streamId,
+    version: 1,
+    broadcaster: { pubkey: stream.presence.pubkey, signature: stream.presence.signature },
+    title: stream.presence.stream.title || 'Untitled Stream',
+    tags: stream.presence.stream.tags || [],
+    recording: {
+      startedAt: stream.recording.startedAt,
+      endedAt: Date.now(),
+      duration: Math.floor((Date.now() - stream.recording.startedAt) / 1000),
+      format: 'webm',
+      size: fileSize
+    },
+    storage: { type: 'local', path: `archives/${streamId}/recording.webm` },
+    thumbnail: stream.recording.thumbnailExt
+      ? `archives/${streamId}/thumbnail.${stream.recording.thumbnailExt}`
+      : null,
+    stats: { peakViewers: stream.recording.peakViewers },
+    visibility: 'public',
+    hlsReady: false
+  };
+
+  await writeFile(path.join(stream.recording.dir, 'metadata.json'), JSON.stringify(metadata, null, 2));
+
+  // Update index.json
+  await updateArchiveIndex(metadata);
+
+  console.log(`[Recording] Finalized: ${streamId.slice(0, 8)}, ${fileSize} bytes`);
+}
+
+async function updateArchiveIndex(entry) {
+  const indexPath = path.join(ARCHIVES_DIR, 'index.json');
+  let index = { version: 1, archives: [], updatedAt: Date.now() };
+  try {
+    index = JSON.parse(await fsReadFile(indexPath, 'utf8'));
+  } catch {}
+
+  // Remove existing entry if re-recording
+  index.archives = index.archives.filter(a => a.id !== entry.id);
+  index.archives.push(entry);
+  index.updatedAt = Date.now();
+
+  await mkdir(ARCHIVES_DIR, { recursive: true });
+  await writeFile(indexPath, JSON.stringify(index, null, 2));
+}
+
 async function handleBroadcasterOffer(ws, msg) {
   console.log('[SFU] Handling broadcaster offer');
   if (!werift) {
@@ -732,10 +961,15 @@ async function handleBroadcasterOffer(ws, msg) {
       headerExtensions: { video: [], audio: [] }
     });
 
-    pc.ontrack = (event) => {
+    pc.ontrack = async (event) => {
       const track = event.track;
       stream.producerTracks.push(track);
       console.log(`[SFU] Producer track received: ${track.kind}`);
+
+      // Start recording if enabled
+      if (stream.recording && werift) {
+        await startTrackRecording(stream, track);
+      }
 
       // Only send offers to waiting consumers once we have both audio and video
       const hasVideo = stream.producerTracks.some(t => t.kind === 'video');
@@ -908,6 +1142,10 @@ function handleDisconnect(ws) {
     const stream = streams.get(state.streamId);
     if (stream) {
       console.log(`[Disconnect] Removing stream ${state.streamId.slice(0,8)}`);
+      // Stop recording if active
+      if (stream.recording) {
+        stopRecording(state.streamId, stream);
+      }
       // Close producer PC
       if (stream.producerPC) {
         try { stream.producerPC.close(); } catch {}

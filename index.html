@@ -7616,8 +7616,11 @@ const Archives = (() => {
       return `<span class="tag">#${escapeHtml(t)}</span>`;
     }).join('');
 
+    const thumbnailUrl = archive.thumbnail ? `/${archive.thumbnail}` : null;
+
     card.innerHTML = `
       <div class="preview">
+        ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="Stream thumbnail" loading="lazy">` : ''}
         <div class="play-overlay">
           <span class="play-btn">▶</span>
         </div>
@@ -7702,8 +7705,8 @@ const Archives = (() => {
 
     // Set video source - use the storage path from metadata
     const videoUrl = archive.storage?.path
-      ? `/archive/${archive.id}/video`
-      : `/archive/${archive.id}/video`;
+      ? `/${archive.storage.path}`
+      : `/archives/${archive.id}/recording.webm`;
 
     video.src = videoUrl;
     video.load(); // Explicitly load the video

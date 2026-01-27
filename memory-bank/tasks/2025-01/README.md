@@ -1,5 +1,28 @@
 # January 2025 Tasks
 
+## 2025-01-26: Server-Side Stream Recording
+
+Restored server-side recording using werift's built-in WebM recording (no ffmpeg).
+
+### Changes
+- MediaRecorder from `werift/nonstandard` for RTP→WebM conversion
+- HTTP endpoints: `/archives` (index), `/archives/:id/*` (files)
+- Recording state tracked in stream entry when `presence.stream.recording` is true
+- Thumbnail saved from last preview frame on stream end
+- Archive playback URL fixed in client
+- Thumbnail display in archive cards
+
+### Files Modified
+- `server.js` - Recording functions, HTTP endpoints, content types
+- `index.html` - Archive playback URL, thumbnail display
+
+### Pattern
+MediaRecorder subscribes to track.onReceiveRtp, handles depacketization and WebM muxing internally. Both audio (Opus) and video (VP8) recorded. Thumbnail extracted from base64 data URL sent during streaming.
+
+See: [260126_server-recording.md](./260126_server-recording.md)
+
+---
+
 ## 2025-01-26: Bluesky LIVE Badge Integration
 
 Added optional Bluesky OAuth integration for posting "I'm live!" when streaming.
