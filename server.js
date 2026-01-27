@@ -82,6 +82,24 @@ const server = createServer(async (req, res) => {
       self: { url: getPublicUrl(), pubkey: relayPubkeyHex },
       peers: Array.from(knownRelays.values())
     }));
+  } else if (pathname === '/client-metadata.json') {
+    // OAuth client metadata for Bluesky AT Protocol OAuth
+    const proto = req.headers['x-forwarded-proto'] || (PORT === 443 ? 'https' : 'http');
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const baseUrl = `${proto}://${host}`;
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      client_id: `${baseUrl}/client-metadata.json`,
+      client_name: 'oneye Live Streaming',
+      client_uri: baseUrl,
+      redirect_uris: [`${baseUrl}/`],
+      scope: 'atproto transition:generic',
+      grant_types: ['authorization_code', 'refresh_token'],
+      response_types: ['code'],
+      token_endpoint_auth_method: 'none',
+      application_type: 'web',
+      dpop_bound_access_tokens: true
+    }));
   } else {
     res.writeHead(404);
     res.end('Not found');

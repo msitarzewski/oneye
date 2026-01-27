@@ -1,5 +1,28 @@
 # January 2025 Tasks
 
+## 2025-01-26: Bluesky LIVE Badge Integration
+
+Added optional Bluesky OAuth integration for posting "I'm live!" when streaming.
+
+### Changes
+- Bluesky OAuth with DPoP (AT Protocol compliant)
+- Session-only credentials (ephemeral, not persisted)
+- "I'm live!" post with stream link when going live
+- Optional archive link post when ending stream
+- User opt-in checkbox in Go Live modal
+- Deep link URL format: `#relay=...&id=...&dest=stream|archive`
+
+### Files Modified
+- `server.js` - `/client-metadata.json` OAuth endpoint
+- `index.html` - Bluesky module, Settings UI, Go Live integration
+
+### Pattern
+OAuth state stored in localStorage (survives redirect), credentials kept in memory only. DPoP keys generated via WebCrypto. Non-blocking API calls - streaming continues if Bluesky fails.
+
+See: [260126_bluesky-integration.md](./260126_bluesky-integration.md)
+
+---
+
 ## 2025-01-26: Relay Stats Display
 
 Added live connected user count with activity breakdown to footer.
@@ -83,3 +106,49 @@ Implemented full tag/category discovery system with sidebar navigation.
 
 ### Pattern
 Client-side tag aggregation - no server changes needed. Tags flow through existing gossip protocol.
+
+---
+
+## 2025-01-25: Viewer Reconnection Fixes
+
+Fixed critical viewer reconnection bug and stabilized SFU track forwarding.
+
+### Changes
+- **CRITICAL**: PLI (Picture Loss Indication) keyframe requests for instant viewer reconnection
+- SFU track forwarding with `addTransceiver()` instead of `addTrack()`
+- Client `stop_viewing` message for proper cleanup
+- WebSocket reconnection guards
+- Race condition fixes between announce/signal_forward
+- Consumer PC cleanup with proper track release
+
+### Files Modified
+- `server.js` - PLI requests, stop_viewing handler, consumer cleanup
+- `index.html` - stop_viewing message, reconnection guards
+
+### Pattern
+New consumers need keyframes to decode video. Send PLI RTCP packets to producer on consumer join. Multiple PLI requests (0ms, 100ms, 500ms, 1000ms) ensure delivery.
+
+See: [250125_viewer-reconnection-fixes.md](./250125_viewer-reconnection-fixes.md)
+
+---
+
+## 2025-01-24: Amplify, Thumbnails & UX
+
+Built distributed amplification system and modernized UX.
+
+### Changes
+- Amplify mode (`?amplify=<streamId>`) for OBS capture
+- Live thumbnails on stream cards (5-second interval)
+- Viewer count tracking and display
+- Sci-fi glass-morphism UX overhaul
+- Connection status overlay with technical readout
+- Hidden controls with hover/tap reveal
+
+### Files Modified
+- `server.js` - thumbnail storage, viewer count broadcasts
+- `index.html` - Amplify module, Thumbnail module, CSS overhaul
+
+### Pattern
+Broadcaster captures canvas frame from video every 5 seconds. Server stores and broadcasts thumbnails. Amplify mode uses URL param for clean OBS-capturable window.
+
+See: [250124_amplify-thumbnails-ux.md](./250124_amplify-thumbnails-ux.md)

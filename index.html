@@ -2358,6 +2358,204 @@ footer {
   color: var(--text);
 }
 
+/* Settings Input */
+.settings-input {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  padding: 8px 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.settings-input::placeholder {
+  color: var(--text-dim);
+}
+
+/* Settings Description */
+.settings-description {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: -8px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* Bluesky Integration */
+.bluesky-connection {
+  flex-wrap: wrap;
+}
+
+.bluesky-disconnected,
+.bluesky-connected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.bluesky-connect-btn,
+.bluesky-disconnect-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  flex-shrink: 0;
+}
+
+.bluesky-connect-btn {
+  background: #0085ff;
+  color: white;
+}
+
+.bluesky-connect-btn:hover {
+  background: #0070dd;
+}
+
+.bluesky-disconnect-btn {
+  background: var(--surface-elevated);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+.bluesky-disconnect-btn:hover {
+  border-color: var(--live);
+  color: var(--live);
+}
+
+.bluesky-user {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  color: var(--accent);
+  flex: 1;
+}
+
+/* Bluesky Header Indicator */
+#blueskyHeaderIndicator {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #0085ff;
+  padding: 4px 8px;
+  background: rgba(0, 133, 255, 0.1);
+  border-radius: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+#blueskyHeaderIndicator::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #0085ff;
+  border-radius: 50%;
+}
+
+/* Bluesky Archive Prompt Modal */
+.bluesky-archive-prompt {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.bluesky-archive-prompt.active {
+  display: flex;
+}
+
+.bluesky-archive-prompt-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.bluesky-archive-prompt-content {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+}
+
+.bluesky-archive-prompt h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.bluesky-archive-prompt p {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.bluesky-archive-prompt .remember-choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.bluesky-archive-prompt .remember-choice input {
+  width: 16px;
+  height: 16px;
+}
+
+.bluesky-archive-prompt-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.bluesky-archive-prompt-actions button {
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.bluesky-archive-prompt-actions .btn-secondary {
+  background: var(--surface-elevated);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+.bluesky-archive-prompt-actions .btn-secondary:hover {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+.bluesky-archive-prompt-actions .btn-primary {
+  background: #0085ff;
+  color: white;
+}
+
+.bluesky-archive-prompt-actions .btn-primary:hover {
+  background: #0070dd;
+}
+
 /* Map View */
 #mapView {
   flex-direction: column;
@@ -3006,6 +3204,35 @@ footer {
   box-shadow: 0 0 20px var(--accent-glow);
 }
 
+/* Bluesky Broadcast Toggle */
+.bluesky-broadcast-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(0, 133, 255, 0.1);
+  border: 1px solid rgba(0, 133, 255, 0.3);
+  border-radius: var(--radius);
+  color: #0085ff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bluesky-broadcast-toggle:hover {
+  background: rgba(0, 133, 255, 0.15);
+}
+
+.bluesky-broadcast-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #0085ff;
+}
+
+.bluesky-broadcast-toggle .bsky-icon {
+  font-size: 16px;
+}
+
 .broadcast-setup-card .setup-actions {
   display: flex;
   gap: 12px;
@@ -3058,6 +3285,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       <span class="status-dot" id="statusDot"></span>
       <span id="fingerprint">--</span>
     </div>
+    <div id="blueskyHeaderIndicator"></div>
     <button class="mobile-menu-btn" id="mobileMenuBtn" title="Menu">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -3343,6 +3571,49 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
           </select>
         </div>
       </div>
+
+      <!-- Bluesky Integration -->
+      <div class="settings-group">
+        <div class="settings-group-title">Bluesky</div>
+        <div class="settings-row bluesky-connection">
+          <div class="bluesky-disconnected">
+            <input type="text" class="settings-input" id="blueskyHandle" placeholder="@handle.bsky.social">
+            <button class="bluesky-connect-btn" id="blueskyConnectBtn">Connect</button>
+          </div>
+          <div class="bluesky-connected" style="display: none;">
+            <span class="bluesky-user" id="blueskyUser">@handle</span>
+            <button class="bluesky-disconnect-btn" id="blueskyDisconnectBtn">Disconnect</button>
+          </div>
+        </div>
+        <div class="settings-description">
+          Session only - not saved. Posts "I'm live!" when streaming.
+        </div>
+        <div class="settings-row" id="blueskyArchiveRow" style="display: none;">
+          <span class="settings-label">Post archive to Bluesky</span>
+          <select class="settings-select" id="settingBlueskyArchive">
+            <option value="ask">Ask each time</option>
+            <option value="always">Always post</option>
+            <option value="never">Never post</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bluesky Archive Prompt Modal -->
+<div class="bluesky-archive-prompt" id="blueskyArchivePrompt">
+  <div class="bluesky-archive-prompt-backdrop" id="blueskyArchiveBackdrop"></div>
+  <div class="bluesky-archive-prompt-content">
+    <h3>Post archive to Bluesky?</h3>
+    <p id="blueskyArchiveTitle">Share your stream with your followers</p>
+    <label class="remember-choice">
+      <input type="checkbox" id="blueskyRememberChoice">
+      Remember this choice
+    </label>
+    <div class="bluesky-archive-prompt-actions">
+      <button class="btn-secondary" id="blueskyArchiveNo">No thanks</button>
+      <button class="btn-primary" id="blueskyArchiveYes">Post to Bluesky</button>
     </div>
   </div>
 </div>
@@ -3386,6 +3657,14 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       <label class="record-toggle" id="setupRecordToggle">
         <input type="checkbox" id="setupRecordCheckbox">
         <span>Record this stream for later viewing</span>
+      </label>
+    </div>
+
+    <div class="setup-section bluesky-indicator" id="blueskyBroadcastIndicator" style="display: none;">
+      <label class="bluesky-broadcast-toggle">
+        <input type="checkbox" id="setupBlueskyPost" checked>
+        <span class="bsky-icon">🦋</span>
+        <span class="bsky-text">Post "I'm live!" to Bluesky</span>
       </label>
     </div>
 
@@ -3589,12 +3868,666 @@ const Identity = (() => {
   return { init, sign, fingerprint, getPubkey };
 })();
 
+// --- Bluesky OAuth Module (Session-only, ephemeral) ---
+const Bluesky = (() => {
+  // State (session-only, never persisted to localStorage)
+  let accessToken = null;
+  let refreshToken = null;
+  let tokenExpiry = 0;
+  let userDid = null;
+  let userHandle = null;
+  let pdsUrl = null;
+  let dpopKeyPair = null;
+  let dpopNonce = null;
+
+  // PKCE/OAuth state
+  let codeVerifier = null;
+  let oauthState = null;
+  let authServerMeta = null;
+
+  const STORAGE_KEY = 'oneye:bluesky-pkce'; // Only stores PKCE verifier temporarily
+
+  // --- Utility Functions ---
+  function base64urlEncode(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function base64urlDecode(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (str.length % 4) str += '=';
+    const binary = atob(str);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  async function sha256(str) {
+    const data = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return base64urlEncode(hash);
+  }
+
+  function generateRandomString(length) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array, b => chars[b % chars.length]).join('');
+  }
+
+  // --- DPoP Key Management ---
+  async function generateDpopKeyPair() {
+    dpopKeyPair = await crypto.subtle.generateKey(
+      { name: 'ECDSA', namedCurve: 'P-256' },
+      true,
+      ['sign', 'verify']
+    );
+    return dpopKeyPair;
+  }
+
+  async function createDpopProof(method, url, nonce = null) {
+    if (!dpopKeyPair) await generateDpopKeyPair();
+
+    // Export public key as JWK
+    const pubJwk = await crypto.subtle.exportKey('jwk', dpopKeyPair.publicKey);
+
+    const header = {
+      typ: 'dpop+jwt',
+      alg: 'ES256',
+      jwk: {
+        kty: pubJwk.kty,
+        crv: pubJwk.crv,
+        x: pubJwk.x,
+        y: pubJwk.y
+      }
+    };
+
+    const payload = {
+      jti: generateRandomString(16),
+      htm: method,
+      htu: url.split('?')[0], // Remove query string
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 300
+    };
+
+    if (nonce) payload.nonce = nonce;
+    if (accessToken) {
+      // Add access token hash for token-bound requests
+      const ath = await sha256(accessToken);
+      payload.ath = ath;
+    }
+
+    const headerB64 = base64urlEncode(new TextEncoder().encode(JSON.stringify(header)));
+    const payloadB64 = base64urlEncode(new TextEncoder().encode(JSON.stringify(payload)));
+    const signingInput = `${headerB64}.${payloadB64}`;
+
+    const signature = await crypto.subtle.sign(
+      { name: 'ECDSA', hash: 'SHA-256' },
+      dpopKeyPair.privateKey,
+      new TextEncoder().encode(signingInput)
+    );
+
+    // Convert signature from DER to raw format (already raw from WebCrypto)
+    const sigB64 = base64urlEncode(signature);
+    return `${headerB64}.${payloadB64}.${sigB64}`;
+  }
+
+  // --- Handle Resolution ---
+  async function resolveHandle(handle) {
+    // Normalize handle
+    handle = handle.replace(/^@/, '');
+
+    // Try resolving via bsky.social API
+    const resp = await fetch(`https://bsky.social/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(handle)}`);
+    if (!resp.ok) throw new Error('Failed to resolve handle');
+
+    const data = await resp.json();
+    return data.did;
+  }
+
+  async function resolvePds(did) {
+    // Get DID document
+    let docUrl;
+    if (did.startsWith('did:plc:')) {
+      docUrl = `https://plc.directory/${did}`;
+    } else if (did.startsWith('did:web:')) {
+      const domain = did.replace('did:web:', '');
+      docUrl = `https://${domain}/.well-known/did.json`;
+    } else {
+      throw new Error('Unsupported DID method');
+    }
+
+    const resp = await fetch(docUrl);
+    if (!resp.ok) throw new Error('Failed to resolve DID document');
+
+    const doc = await resp.json();
+
+    // Find PDS endpoint
+    const pdsService = doc.service?.find(s =>
+      s.type === 'AtprotoPersonalDataServer' || s.id === '#atproto_pds'
+    );
+
+    if (!pdsService) throw new Error('No PDS found in DID document');
+    return pdsService.serviceEndpoint;
+  }
+
+  // --- OAuth Flow ---
+  async function getAuthServerMetadata(pds) {
+    // First, get the protected resource metadata to find the authorization server
+    try {
+      const protectedResourceResp = await fetch(`${pds}/.well-known/oauth-protected-resource`);
+      if (protectedResourceResp.ok) {
+        const protectedResource = await protectedResourceResp.json();
+        const authServerUrl = protectedResource.authorization_servers?.[0];
+
+        if (authServerUrl) {
+          console.log('[Bluesky] Authorization server from PDS:', authServerUrl);
+          const resp = await fetch(`${authServerUrl}/.well-known/oauth-authorization-server`);
+          if (resp.ok) return resp.json();
+        }
+      }
+    } catch (e) {
+      console.log('[Bluesky] Protected resource fetch failed:', e.message);
+    }
+
+    // Fallback to bsky.social as the authorization server for Bluesky accounts
+    console.log('[Bluesky] Using bsky.social as authorization server');
+    const fallbackResp = await fetch('https://bsky.social/.well-known/oauth-authorization-server');
+    if (!fallbackResp.ok) throw new Error('Failed to get authorization server metadata');
+    return fallbackResp.json();
+  }
+
+  async function authorize(handle) {
+    try {
+      // Resolve handle to DID
+      userDid = await resolveHandle(handle);
+      userHandle = handle.replace(/^@/, '');
+      console.log('[Bluesky] Resolved handle:', userHandle, '->', userDid);
+
+      // Get PDS URL
+      pdsUrl = await resolvePds(userDid);
+      console.log('[Bluesky] PDS:', pdsUrl);
+
+      // Get auth server metadata
+      authServerMeta = await getAuthServerMetadata(pdsUrl);
+      console.log('[Bluesky] Auth server:', authServerMeta.authorization_endpoint);
+
+      // Generate PKCE verifier and challenge
+      codeVerifier = generateRandomString(64);
+      const codeChallenge = await sha256(codeVerifier);
+
+      // Generate state
+      oauthState = generateRandomString(32);
+
+      // Store PKCE verifier and relay URL temporarily (will be cleared after callback)
+      // Preserve relay URL so we can restore it after OAuth redirect
+      const currentRelay = typeof Discovery !== 'undefined' ? Discovery.getCurrentRelay() : null;
+      const hashRelay = Bootstrap.parseHashParams().relay;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        verifier: codeVerifier,
+        state: oauthState,
+        did: userDid,
+        handle: userHandle,
+        pds: pdsUrl,
+        authMeta: authServerMeta,
+        relay: currentRelay || hashRelay || null
+      }));
+
+      // Generate DPoP key
+      await generateDpopKeyPair();
+
+      // Build authorization URL
+      const clientId = `${location.origin}/client-metadata.json`;
+      const redirectUri = `${location.origin}${location.pathname}`;
+
+      const authUrl = new URL(authServerMeta.authorization_endpoint);
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('client_id', clientId);
+      authUrl.searchParams.set('redirect_uri', redirectUri);
+      authUrl.searchParams.set('scope', 'atproto transition:generic');
+      authUrl.searchParams.set('state', oauthState);
+      authUrl.searchParams.set('code_challenge', codeChallenge);
+      authUrl.searchParams.set('code_challenge_method', 'S256');
+      authUrl.searchParams.set('login_hint', userHandle);
+
+      // Redirect to authorization
+      console.log('[Bluesky] Redirecting to:', authUrl.toString());
+      window.location.href = authUrl.toString();
+
+    } catch (e) {
+      console.error('[Bluesky] Authorization failed:', e);
+      throw e;
+    }
+  }
+
+  async function handleCallback(code, returnedState, iss) {
+    try {
+      // Restore PKCE state
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) {
+        console.error('[Bluesky] No PKCE state found');
+        return false;
+      }
+
+      const pkceState = JSON.parse(stored);
+      localStorage.removeItem(STORAGE_KEY);
+
+      // Verify state
+      if (returnedState !== pkceState.state) {
+        console.error('[Bluesky] State mismatch');
+        return false;
+      }
+
+      userDid = pkceState.did;
+      userHandle = pkceState.handle;
+      pdsUrl = pkceState.pds;
+      authServerMeta = pkceState.authMeta;
+      codeVerifier = pkceState.verifier;
+
+      // Restore relay URL in the hash (lost during OAuth redirect)
+      if (pkceState.relay) {
+        console.log('[Bluesky] Restoring relay URL:', pkceState.relay);
+        window.location.hash = `relay=${encodeURIComponent(pkceState.relay)}`;
+      }
+
+      // Generate new DPoP key for token exchange
+      await generateDpopKeyPair();
+
+      // Exchange code for tokens
+      const tokenEndpoint = authServerMeta.token_endpoint;
+      const clientId = `${location.origin}/client-metadata.json`;
+      const redirectUri = `${location.origin}${location.pathname}`;
+
+      // Create DPoP proof for token endpoint
+      const dpopProof = await createDpopProof('POST', tokenEndpoint);
+
+      const tokenResp = await fetch(tokenEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'DPoP': dpopProof
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: code,
+          redirect_uri: redirectUri,
+          client_id: clientId,
+          code_verifier: codeVerifier
+        })
+      });
+
+      // Check for DPoP nonce requirement
+      if (tokenResp.status === 400 || tokenResp.status === 401) {
+        const newNonce = tokenResp.headers.get('DPoP-Nonce');
+        if (newNonce) {
+          dpopNonce = newNonce;
+          // Retry with nonce
+          const dpopProofRetry = await createDpopProof('POST', tokenEndpoint, dpopNonce);
+          const retryResp = await fetch(tokenEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'DPoP': dpopProofRetry
+            },
+            body: new URLSearchParams({
+              grant_type: 'authorization_code',
+              code: code,
+              redirect_uri: redirectUri,
+              client_id: clientId,
+              code_verifier: codeVerifier
+            })
+          });
+
+          if (!retryResp.ok) {
+            const err = await retryResp.text();
+            console.error('[Bluesky] Token exchange failed:', err);
+            return false;
+          }
+
+          const tokens = await retryResp.json();
+          accessToken = tokens.access_token;
+          refreshToken = tokens.refresh_token;
+          tokenExpiry = Date.now() + (tokens.expires_in * 1000);
+        } else {
+          const err = await tokenResp.text();
+          console.error('[Bluesky] Token exchange failed:', err);
+          return false;
+        }
+      } else if (!tokenResp.ok) {
+        const err = await tokenResp.text();
+        console.error('[Bluesky] Token exchange failed:', err);
+        return false;
+      } else {
+        const tokens = await tokenResp.json();
+        accessToken = tokens.access_token;
+        refreshToken = tokens.refresh_token;
+        tokenExpiry = Date.now() + (tokens.expires_in * 1000);
+
+        // Store nonce if provided
+        const nonce = tokenResp.headers.get('DPoP-Nonce');
+        if (nonce) dpopNonce = nonce;
+      }
+
+      console.log('[Bluesky] Connected as:', userHandle);
+
+      // Update UI
+      updateConnectionUI(true);
+      return true;
+
+    } catch (e) {
+      console.error('[Bluesky] Callback handling failed:', e);
+      return false;
+    }
+  }
+
+  // --- API Requests ---
+  async function apiRequest(method, endpoint, body = null) {
+    if (!accessToken || !pdsUrl) {
+      throw new Error('Not authenticated');
+    }
+
+    // Check token expiry and refresh if needed
+    if (Date.now() > tokenExpiry - 60000 && refreshToken) {
+      await refreshAccessToken();
+    }
+
+    const url = `${pdsUrl}${endpoint}`;
+    const dpopProof = await createDpopProof(method, url, dpopNonce);
+
+    const headers = {
+      'Authorization': `DPoP ${accessToken}`,
+      'DPoP': dpopProof
+    };
+
+    if (body) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const resp = await fetch(url, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : null
+    });
+
+    // Handle DPoP nonce updates
+    const newNonce = resp.headers.get('DPoP-Nonce');
+    if (newNonce) dpopNonce = newNonce;
+
+    // Retry with new nonce if needed
+    if (resp.status === 401) {
+      const dpopProofRetry = await createDpopProof(method, url, dpopNonce);
+      const retryResp = await fetch(url, {
+        method,
+        headers: {
+          ...headers,
+          'DPoP': dpopProofRetry
+        },
+        body: body ? JSON.stringify(body) : null
+      });
+
+      const retryNonce = retryResp.headers.get('DPoP-Nonce');
+      if (retryNonce) dpopNonce = retryNonce;
+
+      return retryResp;
+    }
+
+    return resp;
+  }
+
+  async function refreshAccessToken() {
+    if (!refreshToken || !authServerMeta) return;
+
+    try {
+      const tokenEndpoint = authServerMeta.token_endpoint;
+      const clientId = `${location.origin}/client-metadata.json`;
+      const dpopProof = await createDpopProof('POST', tokenEndpoint, dpopNonce);
+
+      const resp = await fetch(tokenEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'DPoP': dpopProof
+        },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+          client_id: clientId
+        })
+      });
+
+      const nonce = resp.headers.get('DPoP-Nonce');
+      if (nonce) dpopNonce = nonce;
+
+      if (!resp.ok) {
+        console.error('[Bluesky] Token refresh failed');
+        disconnect();
+        return;
+      }
+
+      const tokens = await resp.json();
+      accessToken = tokens.access_token;
+      refreshToken = tokens.refresh_token || refreshToken;
+      tokenExpiry = Date.now() + (tokens.expires_in * 1000);
+
+      console.log('[Bluesky] Token refreshed');
+    } catch (e) {
+      console.error('[Bluesky] Token refresh error:', e);
+    }
+  }
+
+  // --- Status Management ---
+  function generateTid() {
+    // TID format: base32-sortable timestamp with random suffix
+    const now = BigInt(Date.now()) * BigInt(1000); // microseconds
+    const clockId = Math.floor(Math.random() * 1024);
+    const tid = (now << BigInt(10)) | BigInt(clockId);
+    const chars = '234567abcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    let n = tid;
+    for (let i = 0; i < 13; i++) {
+      result = chars[Number(n % BigInt(32))] + result;
+      n = n / BigInt(32);
+    }
+    return result;
+  }
+
+  async function setLiveStatus(streamUrl, title) {
+    if (!accessToken) return;
+    console.log('[Bluesky] setLiveStatus called with URL:', streamUrl);
+
+    try {
+      // Note: app.bsky.actor.status may not be widely supported yet
+      // Fall back to posting a status update or using profile labels
+      const record = {
+        $type: 'app.bsky.feed.post',
+        text: `I'm live! ${title || 'Streaming now'}`,
+        createdAt: new Date().toISOString(),
+        embed: {
+          $type: 'app.bsky.embed.external',
+          external: {
+            uri: streamUrl,
+            title: title || 'Live on oneye',
+            description: 'Decentralized P2P live stream - click to watch!'
+          }
+        },
+        facets: [{
+          index: { byteStart: 0, byteEnd: 10 },
+          features: [{ $type: 'app.bsky.richtext.facet#tag', tag: 'live' }]
+        }]
+      };
+
+      const rkey = generateTid();
+
+      const resp = await apiRequest('POST', '/xrpc/com.atproto.repo.createRecord', {
+        repo: userDid,
+        collection: 'app.bsky.feed.post',
+        rkey: rkey,
+        record: record
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        console.log('[Bluesky] Live status posted:', data.uri);
+        // Store the rkey so we can delete it later
+        sessionStorage.setItem('oneye:bluesky-live-rkey', rkey);
+        return data.uri;
+      } else {
+        console.error('[Bluesky] Failed to post live status');
+      }
+    } catch (e) {
+      console.error('[Bluesky] Error setting live status:', e);
+    }
+  }
+
+  async function clearLiveStatus() {
+    if (!accessToken) return;
+
+    try {
+      const rkey = sessionStorage.getItem('oneye:bluesky-live-rkey');
+      if (!rkey) return;
+
+      const resp = await apiRequest('POST', '/xrpc/com.atproto.repo.deleteRecord', {
+        repo: userDid,
+        collection: 'app.bsky.feed.post',
+        rkey: rkey
+      });
+
+      if (resp.ok) {
+        console.log('[Bluesky] Live status cleared');
+        sessionStorage.removeItem('oneye:bluesky-live-rkey');
+      }
+    } catch (e) {
+      console.error('[Bluesky] Error clearing live status:', e);
+    }
+  }
+
+  async function postArchiveLink(archiveUrl, title) {
+    if (!accessToken) return;
+
+    try {
+      const record = {
+        $type: 'app.bsky.feed.post',
+        text: `Stream archived: ${title || 'Untitled'}`,
+        createdAt: new Date().toISOString(),
+        embed: {
+          $type: 'app.bsky.embed.external',
+          external: {
+            uri: archiveUrl,
+            title: title || 'Stream Archive',
+            description: 'Watch the archive on oneye'
+          }
+        }
+      };
+
+      const resp = await apiRequest('POST', '/xrpc/com.atproto.repo.createRecord', {
+        repo: userDid,
+        collection: 'app.bsky.feed.post',
+        rkey: generateTid(),
+        record: record
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        console.log('[Bluesky] Archive link posted:', data.uri);
+        return data.uri;
+      }
+    } catch (e) {
+      console.error('[Bluesky] Error posting archive link:', e);
+    }
+  }
+
+  // --- UI Updates ---
+  function updateConnectionUI(connected) {
+    const disconnectedEl = document.querySelector('.bluesky-disconnected');
+    const connectedEl = document.querySelector('.bluesky-connected');
+    const userEl = document.getElementById('blueskyUser');
+    const headerIndicator = document.getElementById('blueskyHeaderIndicator');
+    const archiveRow = document.getElementById('blueskyArchiveRow');
+    const archiveSelect = document.getElementById('settingBlueskyArchive');
+
+    if (connected && userHandle) {
+      if (disconnectedEl) disconnectedEl.style.display = 'none';
+      if (connectedEl) connectedEl.style.display = 'flex';
+      if (userEl) userEl.textContent = `@${userHandle}`;
+      if (headerIndicator) {
+        headerIndicator.textContent = `@${userHandle}`;
+        headerIndicator.style.display = 'flex';
+      }
+      if (archiveRow) archiveRow.style.display = '';
+      // Sync archive select with settings
+      if (archiveSelect && typeof Settings !== 'undefined') {
+        archiveSelect.value = Settings.getBlueskyArchivePost();
+      }
+    } else {
+      if (disconnectedEl) disconnectedEl.style.display = 'flex';
+      if (connectedEl) connectedEl.style.display = 'none';
+      if (headerIndicator) headerIndicator.style.display = 'none';
+      if (archiveRow) archiveRow.style.display = 'none';
+    }
+  }
+
+  function disconnect() {
+    accessToken = null;
+    refreshToken = null;
+    tokenExpiry = 0;
+    userDid = null;
+    userHandle = null;
+    pdsUrl = null;
+    dpopKeyPair = null;
+    dpopNonce = null;
+    authServerMeta = null;
+    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem('oneye:bluesky-live-rkey');
+    updateConnectionUI(false);
+    console.log('[Bluesky] Disconnected');
+  }
+
+  // --- Public API ---
+  return {
+    isConnected: () => !!accessToken,
+    getUserHandle: () => userHandle,
+    authorize,
+    handleCallback,
+    setLiveStatus,
+    clearLiveStatus,
+    postArchiveLink,
+    disconnect,
+    updateConnectionUI
+  };
+})();
+
 // --- Bootstrap Module ---
 const Bootstrap = (() => {
+  // Parse all hash parameters (relay, id, dest, code, state for OAuth)
+  function parseHashParams() {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    return {
+      relay: params.get('relay') ? decodeURIComponent(params.get('relay')) : null,
+      id: params.get('id'),
+      dest: params.get('dest'), // 'stream' | 'archive'
+      code: params.get('code'), // OAuth authorization code
+      state: params.get('state'), // OAuth state
+      iss: params.get('iss') // OAuth issuer
+    };
+  }
+
   function getRelayFromHash() {
-    const hash = window.location.hash;
-    const match = hash.match(/relay=([^&]+)/);
-    return match ? decodeURIComponent(match[1]) : null;
+    return parseHashParams().relay;
+  }
+
+  // Clear OAuth-related params from URL after handling
+  function clearOAuthParams() {
+    const params = parseHashParams();
+    if (params.code || params.state) {
+      const newHash = [];
+      if (params.relay) newHash.push(`relay=${encodeURIComponent(params.relay)}`);
+      if (params.id) newHash.push(`id=${params.id}`);
+      if (params.dest) newHash.push(`dest=${params.dest}`);
+      window.location.hash = newHash.length > 0 ? newHash.join('&') : '';
+    }
   }
 
   function getBaseWebSocketUrl() {
@@ -3685,7 +4618,15 @@ const Bootstrap = (() => {
     return [{ url: getBaseWebSocketUrl(), pubkey: '' }];
   }
 
-  return { resolveRelays, getBaseWebSocketUrl };
+  // Build shareable URL with stream/archive ID
+  function buildShareUrl(relay, id, dest) {
+    const params = [`relay=${encodeURIComponent(relay)}`];
+    if (id) params.push(`id=${id}`);
+    if (dest) params.push(`dest=${dest}`);
+    return `${location.origin}${location.pathname}#${params.join('&')}`;
+  }
+
+  return { resolveRelays, getBaseWebSocketUrl, parseHashParams, clearOAuthParams, buildShareUrl };
 })();
 
 // --- Relay Health Module ---
@@ -5265,7 +6206,8 @@ const Settings = (() => {
     locationPrecision: 'city', // 'exact' | 'neighborhood' | 'city' | 'region'
     notifications: false,      // Browser notifications for new streams
     defaultView: 'live',       // 'live' | 'archives'
-    sidebarExpanded: false     // Sidebar state
+    sidebarExpanded: false,    // Sidebar state
+    blueskyArchivePost: 'ask'  // 'ask' | 'always' | 'never'
   };
 
   let settings = { ...DEFAULTS };
@@ -5431,6 +6373,72 @@ const Settings = (() => {
       });
     }
 
+    // Bluesky Archive Post select
+    const blueskyArchiveSelect = document.getElementById('settingBlueskyArchive');
+    if (blueskyArchiveSelect) {
+      blueskyArchiveSelect.value = settings.blueskyArchivePost;
+      blueskyArchiveSelect.addEventListener('change', () => {
+        settings.blueskyArchivePost = blueskyArchiveSelect.value;
+        save();
+      });
+    }
+
+    // Bluesky Connect button
+    const blueskyConnectBtn = document.getElementById('blueskyConnectBtn');
+    const blueskyHandleInput = document.getElementById('blueskyHandle');
+    if (blueskyConnectBtn && blueskyHandleInput) {
+      blueskyConnectBtn.addEventListener('click', async () => {
+        const handle = blueskyHandleInput.value.trim();
+        if (!handle) {
+          blueskyHandleInput.focus();
+          return;
+        }
+        try {
+          blueskyConnectBtn.disabled = true;
+          blueskyConnectBtn.textContent = 'Connecting...';
+          await Bluesky.authorize(handle);
+        } catch (e) {
+          console.error('[Settings] Bluesky connect error:', e);
+          blueskyConnectBtn.disabled = false;
+          blueskyConnectBtn.textContent = 'Connect';
+          alert('Failed to connect to Bluesky: ' + e.message);
+        }
+      });
+
+      // Enter key to connect
+      blueskyHandleInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          blueskyConnectBtn.click();
+        }
+      });
+    }
+
+    // Bluesky Disconnect button
+    const blueskyDisconnectBtn = document.getElementById('blueskyDisconnectBtn');
+    if (blueskyDisconnectBtn) {
+      blueskyDisconnectBtn.addEventListener('click', () => {
+        Bluesky.disconnect();
+        // Hide archive post row when disconnected
+        const archiveRow = document.getElementById('blueskyArchiveRow');
+        if (archiveRow) archiveRow.style.display = 'none';
+      });
+    }
+
+    // Bluesky Archive Prompt handlers
+    const archivePrompt = document.getElementById('blueskyArchivePrompt');
+    const archiveBackdrop = document.getElementById('blueskyArchiveBackdrop');
+    const archiveYes = document.getElementById('blueskyArchiveYes');
+    const archiveNo = document.getElementById('blueskyArchiveNo');
+    const rememberChoice = document.getElementById('blueskyRememberChoice');
+
+    if (archiveBackdrop) {
+      archiveBackdrop.addEventListener('click', () => {
+        archivePrompt?.classList.remove('active');
+      });
+    }
+
+    // Archive prompt handlers are set dynamically when shown
+
     // Settings header click to open modal
     const settingsHeader = document.getElementById('settingsHeader');
     const settingsModal = document.getElementById('settingsModal');
@@ -5507,11 +6515,14 @@ const Settings = (() => {
     save();
   }
 
+  function getBlueskyArchivePost() { return settings.blueskyArchivePost; }
+
   return {
     init, get, set,
     getTheme, shouldAutoPlay, isLocationEnabled,
     getLocationPrecision, areNotificationsEnabled,
-    getDefaultView, isSidebarExpanded, setSidebarExpanded
+    getDefaultView, isSidebarExpanded, setSidebarExpanded,
+    getBlueskyArchivePost
   };
 })();
 
@@ -6498,6 +7509,12 @@ const BroadcastSetup = (() => {
       setup.classList.add('active');
       isOpen = true;
 
+      // Show/hide Bluesky indicator based on connection status
+      const bskyIndicator = document.getElementById('blueskyBroadcastIndicator');
+      if (bskyIndicator) {
+        bskyIndicator.style.display = Bluesky.isConnected() ? '' : 'none';
+      }
+
       // Focus title input
       setTimeout(() => {
         document.getElementById('setupTitle')?.focus();
@@ -6744,7 +7761,8 @@ const Archives = (() => {
     updateLiveCount,
     getArchives,
     renderArchives,
-    createArchiveCard
+    createArchiveCard,
+    openPlayer
   };
 })();
 
@@ -7055,8 +8073,9 @@ const UI = (() => {
       // Start capturing thumbnails for preview
       Thumbnail.startCapturing(localVideo, streamId);
 
-      // Show shareable URL and QR code
-      const shareableUrl = `${location.origin}${location.pathname}#relay=${encodeURIComponent(Discovery.getCurrentRelay() || Bootstrap.getBaseWebSocketUrl())}`;
+      // Show shareable URL and QR code (include stream ID for deep linking)
+      const relay = Discovery.getCurrentRelay() || Bootstrap.getBaseWebSocketUrl();
+      const shareableUrl = Bootstrap.buildShareUrl(relay, streamId, 'stream');
       shareUrl.textContent = shareableUrl;
       shareUrl.dataset.url = shareableUrl;
       currentShareUrl = shareableUrl;
@@ -7097,13 +8116,33 @@ const UI = (() => {
       } catch (e) {
         console.warn('[Live] QR generation failed:', e);
       }
+
+      // Post to Bluesky if connected and user opted in
+      const shouldPostToBluesky = document.getElementById('setupBlueskyPost')?.checked;
+      if (Bluesky.isConnected() && shouldPostToBluesky) {
+        const streamTitle = Amplify.getStreamTitle();
+        Bluesky.setLiveStatus(shareableUrl, streamTitle).catch(e => {
+          console.warn('[Live] Failed to post Bluesky status:', e);
+        });
+      }
     } catch (e) {
       console.error('[Live] Failed to go live:', e);
       setStatus('Camera access denied');
     }
   }
 
+  // Store stream info for archive prompt
+  let lastStreamTitle = '';
+  let lastStreamId = '';
+  let wasRecording = false;
+
   function stopLive() {
+    // Capture stream info before clearing (for Bluesky archive post)
+    lastStreamTitle = Amplify.getStreamTitle();
+    lastStreamId = RTC.getStreamId();
+    wasRecording = document.getElementById('recordingIndicator')?.classList.contains('active') || false;
+    const relay = Discovery.getCurrentRelay() || Bootstrap.getBaseWebSocketUrl();
+
     Media.stopCamera();
     RTC.stopBroadcast();
     Thumbnail.stopCapturing();
@@ -7128,10 +8167,92 @@ const UI = (() => {
     // Hide recording indicator
     document.getElementById('recordingIndicator')?.classList.remove('active');
 
+    // Clear Bluesky live status (fire and forget)
+    if (Bluesky.isConnected()) {
+      Bluesky.clearLiveStatus().catch(e => {
+        console.warn('[Live] Failed to clear Bluesky status:', e);
+      });
+
+      // Handle archive posting based on settings
+      if (wasRecording && lastStreamId) {
+        const archivePref = Settings.getBlueskyArchivePost();
+        const archiveUrl = Bootstrap.buildShareUrl(relay, lastStreamId, 'archive');
+
+        if (archivePref === 'always') {
+          // Post archive link automatically
+          Bluesky.postArchiveLink(archiveUrl, lastStreamTitle).catch(e => {
+            console.warn('[Live] Failed to post archive to Bluesky:', e);
+          });
+        } else if (archivePref === 'ask') {
+          // Show prompt after a short delay
+          setTimeout(() => {
+            showBlueskyArchivePrompt(archiveUrl, lastStreamTitle);
+          }, 500);
+        }
+        // 'never' - do nothing
+      }
+    }
+
     // Refresh archives after a delay (server needs time to save)
     setTimeout(() => {
       Archives.loadArchives();
     }, 2000);
+  }
+
+  function showBlueskyArchivePrompt(archiveUrl, title) {
+    const prompt = document.getElementById('blueskyArchivePrompt');
+    const titleEl = document.getElementById('blueskyArchiveTitle');
+    const yesBtn = document.getElementById('blueskyArchiveYes');
+    const noBtn = document.getElementById('blueskyArchiveNo');
+    const rememberCheckbox = document.getElementById('blueskyRememberChoice');
+
+    if (!prompt) return;
+
+    // Set title
+    if (titleEl) {
+      titleEl.textContent = `Share "${title || 'Untitled'}" with your followers`;
+    }
+
+    // Reset checkbox
+    if (rememberCheckbox) rememberCheckbox.checked = false;
+
+    // Set up handlers
+    const handleYes = () => {
+      prompt.classList.remove('active');
+      Bluesky.postArchiveLink(archiveUrl, title).catch(e => {
+        console.warn('[Live] Failed to post archive to Bluesky:', e);
+      });
+      if (rememberCheckbox?.checked) {
+        Settings.set('blueskyArchivePost', 'always');
+      }
+      cleanup();
+    };
+
+    const handleNo = () => {
+      prompt.classList.remove('active');
+      if (rememberCheckbox?.checked) {
+        Settings.set('blueskyArchivePost', 'never');
+      }
+      cleanup();
+    };
+
+    const cleanup = () => {
+      yesBtn?.removeEventListener('click', handleYes);
+      noBtn?.removeEventListener('click', handleNo);
+    };
+
+    // Remove old listeners and add new
+    if (yesBtn) {
+      yesBtn.replaceWith(yesBtn.cloneNode(true));
+      document.getElementById('blueskyArchiveYes').addEventListener('click', handleYes);
+    }
+    if (noBtn) {
+      noBtn.replaceWith(noBtn.cloneNode(true));
+      document.getElementById('blueskyArchiveNo').addEventListener('click', handleNo);
+    }
+
+    // Show prompt
+    prompt.classList.add('active');
   }
 
   function setIdentity(fp) {
@@ -7431,6 +8552,55 @@ async function init() {
 
   // Connect to relay
   await Discovery.connect();
+
+  // Handle deep link navigation from URL parameters
+  const hashParams = Bootstrap.parseHashParams();
+  if (hashParams.id && hashParams.dest) {
+    console.log('[Init] Deep link detected:', hashParams.dest, hashParams.id);
+    setTimeout(() => {
+      if (hashParams.dest === 'stream') {
+        // Find and open the stream
+        const stream = Discovery.getStreams().find(s => s.stream?.id === hashParams.id);
+        if (stream) {
+          document.getElementById('viewerOverlay').classList.add('active');
+          RTC.startViewing(stream.stream.id);
+          Amplify.setStreamInfo(stream);
+        } else {
+          console.log('[Init] Stream not found, may not be live yet');
+        }
+      } else if (hashParams.dest === 'archive') {
+        // Open archive player
+        const archive = Archives.getArchives().find(a => a.id === hashParams.id);
+        if (archive) {
+          Archives.openPlayer(archive);
+        } else {
+          console.log('[Init] Archive not found');
+        }
+      }
+    }, 500); // Small delay to let streams populate
+  }
+
+  // Handle Bluesky OAuth callback (comes as query params, not hash)
+  const queryParams = new URLSearchParams(window.location.search);
+  const oauthCode = queryParams.get('code');
+  const oauthState = queryParams.get('state');
+  const oauthIss = queryParams.get('iss');
+
+  if (oauthCode && oauthState) {
+    console.log('[Init] OAuth callback detected');
+    if (typeof Bluesky !== 'undefined') {
+      // Handle callback and clear query params from URL
+      const success = await Bluesky.handleCallback(oauthCode, oauthState, oauthIss);
+      // Clean up URL by removing query params but keeping hash
+      const cleanUrl = `${location.origin}${location.pathname}${location.hash}`;
+      history.replaceState(null, '', cleanUrl);
+
+      if (success) {
+        // Open settings modal to show connected state
+        document.getElementById('settingsModal')?.classList.add('active');
+      }
+    }
+  }
 }
 
 init();
