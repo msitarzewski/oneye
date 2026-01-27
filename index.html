@@ -7338,24 +7338,26 @@ const Sidebar = (() => {
     query = query.toLowerCase().trim();
 
     if (currentView === 'live') {
-      // Filter live stream cards
+      // Filter live stream cards by title and tags
       const cards = document.querySelectorAll('#streamGrid .stream-card');
       let visibleCount = 0;
       cards.forEach(card => {
         const title = card.querySelector('.title')?.textContent?.toLowerCase() || '';
-        const visible = !query || title.includes(query);
+        const tags = Array.from(card.querySelectorAll('.tag')).map(t => t.textContent.toLowerCase());
+        const visible = !query || title.includes(query) || tags.some(t => t.includes(query));
         card.style.display = visible ? '' : 'none';
         if (visible) visibleCount++;
       });
       document.getElementById('contentCount').textContent = visibleCount;
       document.getElementById('emptyState').style.display = visibleCount === 0 ? '' : 'none';
     } else if (currentView === 'archives') {
-      // Filter archive cards
+      // Filter archive cards by title and tags
       const cards = document.querySelectorAll('#archiveGrid .archive-card');
       let visibleCount = 0;
       cards.forEach(card => {
         const title = card.querySelector('.title')?.textContent?.toLowerCase() || '';
-        const visible = !query || title.includes(query);
+        const tags = Array.from(card.querySelectorAll('.tag')).map(t => t.textContent.toLowerCase());
+        const visible = !query || title.includes(query) || tags.some(t => t.includes(query));
         card.style.display = visible ? '' : 'none';
         if (visible) visibleCount++;
       });

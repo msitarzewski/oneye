@@ -1,5 +1,24 @@
 # January 2025 Tasks
 
+## 2025-01-27: Search Tags Filter
+
+Fixed search to filter by tags in addition to title.
+
+### Changes
+- `performSearch()` now extracts tags from stream/archive cards
+- Matches query against title OR any tag text
+- Works for both live streams and archives
+
+### Files Modified
+- `index.html` - Sidebar module `performSearch()` function
+
+### Pattern
+Extract `.tag` elements from cards, check if any tag text includes the search query.
+
+See: [270127_search-tags-filter.md](./270127_search-tags-filter.md)
+
+---
+
 ## 2025-01-27: Location Reverse Geocoding
 
 Implemented reverse geocoding so location displays human-readable names instead of coordinates.
