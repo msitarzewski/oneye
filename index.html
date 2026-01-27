@@ -6114,6 +6114,63 @@ const Location = (() => {
     return Math.round(value * factor) / factor;
   }
 
+  // Reverse geocode using Nominatim (OpenStreetMap) - no API key needed
+  async function reverseGeocode(lat, lng) {
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`;
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'oneye-stream-app' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+
+      if (data.error) {
+        console.warn('[Location] Geocode error:', data.error);
+        return null;
+      }
+
+      const addr = data.address || {};
+      // Build label based on precision level
+      const city = addr.city || addr.town || addr.village || addr.municipality || '';
+      const state = addr.state || addr.region || addr.province || '';
+      const country = addr.country || '';
+      const neighborhood = addr.suburb || addr.neighbourhood || addr.district || '';
+
+      // Store full address data for flexible formatting
+      return { city, state, country, neighborhood };
+    } catch (e) {
+      console.warn('[Location] Reverse geocode failed:', e.message);
+      return null;
+    }
+  }
+
+  // Format label based on precision level
+  function formatLabel(addrData) {
+    if (!addrData) return '';
+    const { city, state, country, neighborhood } = addrData;
+
+    switch (precision) {
+      case 'exact':
+      case 'neighborhood':
+        if (neighborhood && city) return `${neighborhood}, ${city}`;
+        if (city && state) return `${city}, ${state}`;
+        if (city) return city;
+        return state || country || '';
+      case 'city':
+        if (city && state) return `${city}, ${state}`;
+        if (city && country) return `${city}, ${country}`;
+        if (city) return city;
+        return state || country || '';
+      case 'region':
+        if (state && country) return `${state}, ${country}`;
+        return state || country || '';
+      case 'country':
+        return country || '';
+      default:
+        return city || state || country || '';
+    }
+  }
+
   async function requestLocation() {
     if (!navigator.geolocation) {
       console.warn('[Location] Geolocation not supported');
@@ -6122,14 +6179,26 @@ const Location = (() => {
 
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           currentLocation = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             accuracy: position.coords.accuracy,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            label: '',
+            addressData: null
           };
-          console.log('[Location] Got position:', currentLocation);
+          console.log('[Location] Got position:', currentLocation.lat, currentLocation.lng);
+
+          // Reverse geocode in background (don't block)
+          reverseGeocode(currentLocation.lat, currentLocation.lng).then(addrData => {
+            if (addrData && currentLocation) {
+              currentLocation.addressData = addrData;
+              currentLocation.label = formatLabel(addrData);
+              console.log('[Location] Geocoded:', currentLocation.label);
+            }
+          });
+
           resolve(currentLocation);
         },
         (error) => {
@@ -6159,6 +6228,10 @@ const Location = (() => {
   function setPrecision(level) {
     if (PRECISION_DECIMALS[level] !== undefined) {
       precision = level;
+      // Reformat label for new precision
+      if (currentLocation?.addressData) {
+        currentLocation.label = formatLabel(currentLocation.addressData);
+      }
       console.log('[Location] Precision set to:', level);
     }
   }
@@ -6179,15 +6252,14 @@ const Location = (() => {
       lat: roundCoord(currentLocation.lat, decimals),
       lng: roundCoord(currentLocation.lng, decimals),
       precision: precision,
-      label: '' // Could reverse geocode, but keeping simple
+      label: currentLocation.label || ''
     };
   }
 
-  // For getting location label (simple approximation)
-  async function getLocationLabel() {
+  function getLocationLabel() {
     if (!currentLocation) return '';
-    // Could implement reverse geocoding here
-    return `${roundCoord(currentLocation.lat, 1)}°, ${roundCoord(currentLocation.lng, 1)}°`;
+    // Return cached label or fallback to coords
+    return currentLocation.label || `${roundCoord(currentLocation.lat, 1)}°, ${roundCoord(currentLocation.lng, 1)}°`;
   }
 
   return {

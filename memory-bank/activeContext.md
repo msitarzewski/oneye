@@ -190,8 +190,8 @@ User changes setting in modal
 
 1. ~~Archive cards don't have thumbnails~~ - Fixed: thumbnails saved on stream end
 2. Search only filters by title, not tags
-3. Location reverse geocoding not implemented (shows coords)
-4. Notifications permission request needs testing
+3. ~~Location reverse geocoding not implemented~~ - Fixed: uses Nominatim (OpenStreetMap) API
+4. ~~Notifications permission request needs testing~~ - Works
 
 ### File Locations
 
