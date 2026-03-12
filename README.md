@@ -4,6 +4,8 @@ Decentralized P2P live streaming with distributed amplification.
 
 **Zero accounts. Zero CDN. Zero tracking. One HTML file.**
 
+**[Try it now](https://msitarzewski.github.io/oneye/)** - no install needed, connects to the public relay automatically.
+
 Broadcast live video to anyone. Viewers can "amplify" your stream by restreaming to YouTube, Facebook, TikTok - creating a distributed amplification network.
 
 ## Quick Start
@@ -22,9 +24,19 @@ The relay starts on port 3000 by default and shows all available network interfa
 [oneye] LAN: http://192.168.1.144:3000
 ```
 
-**Environment variables:**
-- `PORT` - Server port (default: 3000)
-- `PUBLIC_URL` - Public WebSocket URL for relay announcements (e.g., `wss://relay.example.com`)
+**Configuration** (copy `config.json.example` to `config.json`):
+
+```json
+{
+  "port": 3000,
+  "host": "127.0.0.1",
+  "publicUrl": "wss://relay.yourdomain.com",
+  "allowedOrigins": null,
+  "maxConnections": 500
+}
+```
+
+Environment variables override `config.json`: `PORT`, `HOST`, `PUBLIC_URL`, `ALLOWED_ORIGINS`, `MAX_WS_CONNECTIONS`.
 
 ### Go Live
 
@@ -189,7 +201,7 @@ Help spread the message by restreaming to YouTube, Facebook, TikTok, or Instagra
 Clients find relays through multiple methods (in priority order):
 
 1. **URL hash**: `https://example.com/#relay=wss://relay.example.com`
-2. **IPNS**: Set `IPNS_NAME` in index.html to resolve relay list from IPFS
+2. **Bootstrap**: Fetches relay list from GitHub Pages ([`relays.json`](docs/relays.json)) - update this file when relays change
 3. **Well-known**: `/.well-known/oneye.json` on the current domain
 4. **DNS TXT**: `_oneye.example.com` TXT records via DNS-over-HTTPS
 5. **Self**: The URL you loaded becomes the relay
@@ -219,10 +231,12 @@ Share the ngrok HTTPS URL. WebSocket connections use WSS automatically.
 ### Production
 
 ```bash
-PUBLIC_URL=wss://relay.yourdomain.com PORT=443 node server.js
+cp config.json.example config.json
+# Edit config.json with your domain and settings, then:
+node server.js
 ```
 
-Put behind nginx/caddy for TLS termination. Set `PUBLIC_URL` so the relay announces its public address to the DHT.
+Put behind nginx/caddy for TLS termination. Set `publicUrl` in `config.json` so the relay announces its public address to the DHT.
 
 ## API
 
