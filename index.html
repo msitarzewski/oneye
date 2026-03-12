@@ -4498,6 +4498,15 @@ const Bluesky = (() => {
   };
 })();
 
+// --- Security Helpers ---
+function isValidRelayUrl(url) {
+  return typeof url === 'string' && /^wss?:\/\/.+/.test(url);
+}
+
+function isSafeImageSrc(src) {
+  return typeof src === 'string' && src.startsWith('data:image/');
+}
+
 // --- Bootstrap Module ---
 const Bootstrap = (() => {
   // Parse all hash parameters (relay, id, dest, code, state for OAuth)
@@ -4580,7 +4589,7 @@ const Bootstrap = (() => {
   async function resolveRelays() {
     // Priority: URL hash > IPNS > well-known > DNS > self
     const hashRelay = getRelayFromHash();
-    if (hashRelay) return [{ url: hashRelay, pubkey: '' }];
+    if (hashRelay && isValidRelayUrl(hashRelay)) return [{ url: hashRelay, pubkey: '' }];
 
     if (IPNS_NAME) {
       try {
@@ -5092,6 +5101,7 @@ const Thumbnail = (() => {
   }
 
   function updatePreview(streamId, dataUrl) {
+    if (!isSafeImageSrc(dataUrl)) return;
     const card = document.querySelector(`.stream-card[data-stream-id="${streamId}"]`);
     if (!card) return;
 
@@ -8356,7 +8366,8 @@ const UI = (() => {
 
   function createStreamCard(presence) {
     const viewerCount = presence.viewerCount || 0;
-    const thumbnail = presence.thumbnail || null;
+    const rawThumb = presence.thumbnail || null;
+    const thumbnail = isSafeImageSrc(rawThumb) ? rawThumb : null;
     const tags = presence.stream?.tags || [];
     const hasLocation = !!presence.location?.lat;
 
