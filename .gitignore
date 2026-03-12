@@ -22,5 +22,6 @@ npm-debug.log*
 # Environment
 .env
 .env.local
+config.json
 
 archives/
