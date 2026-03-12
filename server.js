@@ -27,15 +27,29 @@ try {
   console.warn('[SFU] werift unavailable, WebRTC disabled:', e.message);
 }
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
-const PUBLIC_URL = process.env.PUBLIC_URL || null; // e.g., wss://relay.example.com
+// --- Load config file (env vars override config.json) ---
+let fileConfig = {};
+try {
+  const raw = await readFile(new URL('./config.json', import.meta.url), 'utf8');
+  fileConfig = JSON.parse(raw);
+  console.log('[oneye] Loaded config.json');
+} catch {
+  // No config file — use env vars and defaults
+}
+
+function conf(envKey, fileKey, fallback) {
+  return process.env[envKey] ?? fileConfig[fileKey] ?? fallback;
+}
+
+const PORT = parseInt(conf('PORT', 'port', '3000'), 10);
+const PUBLIC_URL = conf('PUBLIC_URL', 'publicUrl', null);
 const TOPIC = crypto.createHash('sha256').update('oneye:live-streams:v1').digest();
 const PRESENCE_TTL = 30_000; // 30s expiry for stale streams
 const PING_INTERVAL = 30_000;
 const RELAY_ANNOUNCE_INTERVAL = 30_000;
 
 // --- Security Limits ---
-const MAX_WS_CONNECTIONS = parseInt(process.env.MAX_WS_CONNECTIONS || '500', 10);
+const MAX_WS_CONNECTIONS = parseInt(conf('MAX_WS_CONNECTIONS', 'maxConnections', '500'), 10);
 const MAX_WS_MESSAGE_SIZE = 512 * 1024;   // 512KB max WebSocket frame
 const MAX_WS_MESSAGES_PER_SEC = 30;       // rate limit per connection
 const MAX_THUMBNAIL_SIZE = 500 * 1024;    // 500KB for base64 thumbnails
@@ -43,9 +57,10 @@ const MAX_SDP_SIZE = 64 * 1024;           // 64KB for SDP payloads
 const MAX_TITLE_LENGTH = 200;
 const MAX_TAG_COUNT = 10;
 const MAX_TAG_LENGTH = 30;
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
-  : null; // null = allow all (dev default)
+const _originsRaw = conf('ALLOWED_ORIGINS', 'allowedOrigins', null);
+const ALLOWED_ORIGINS = typeof _originsRaw === 'string'
+  ? _originsRaw.split(',').map(s => s.trim())
+  : (Array.isArray(_originsRaw) ? _originsRaw : null);
 
 // Generate relay keypair for signing relay announcements
 const relayKeyPair = crypto.generateKeyPairSync('ed25519');
@@ -76,7 +91,7 @@ function securityHeaders(extra = {}) {
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self)',
     ...extra
   };
-  if (PUBLIC_URL?.startsWith('wss://') || process.env.FORCE_HSTS) {
+  if (PUBLIC_URL?.startsWith('wss://') || conf('FORCE_HSTS', 'forceHsts', null)) {
     headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
   }
   return headers;
@@ -1590,9 +1605,10 @@ function getRelayList() {
 }
 
 // --- Startup ---
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = conf('HOST', 'host', '0.0.0.0');
 server.listen(PORT, HOST, () => {
   console.log(`[oneye] Relay listening on http://${HOST}:${PORT}`);
+  if (PUBLIC_URL) console.log(`[oneye] Public URL: ${PUBLIC_URL}`);
   // Show LAN IP for easy sharing
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
