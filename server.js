@@ -48,6 +48,22 @@ const PRESENCE_TTL = 30_000; // 30s expiry for stale streams
 const PING_INTERVAL = 30_000;
 const RELAY_ANNOUNCE_INTERVAL = 30_000;
 
+// --- ICE/TURN Configuration ---
+// Each relay operator configures their own TURN server via env vars.
+// Clients receive the ICE config on WebSocket connect.
+const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+const _turnUrl = conf('TURN_URL', 'turnUrl', null);
+if (_turnUrl) {
+  ICE_SERVERS.push({
+    urls: _turnUrl,
+    username: conf('TURN_USERNAME', 'turnUsername', ''),
+    credential: conf('TURN_CREDENTIAL', 'turnCredential', '')
+  });
+  console.log(`[ICE] TURN server configured: ${_turnUrl}`);
+} else {
+  console.log('[ICE] No TURN server configured (STUN only). Set TURN_URL, TURN_USERNAME, TURN_CREDENTIAL for NAT traversal.');
+}
+
 // --- Security Limits ---
 const MAX_WS_CONNECTIONS = parseInt(conf('MAX_WS_CONNECTIONS', 'maxConnections', '500'), 10);
 const MAX_WS_MESSAGE_SIZE = 512 * 1024;   // 512KB max WebSocket frame
@@ -236,6 +252,9 @@ wss.on('connection', (ws) => {
 
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
+
+  // Send ICE config so client uses this relay's TURN server
+  send(ws, { type: 'ice_servers', iceServers: ICE_SERVERS });
 
   ws.on('message', (data) => {
     // --- Rate limit ---
@@ -1056,7 +1075,7 @@ async function handleBroadcasterOffer(ws, msg) {
 
   try {
     const pc = new werift.RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: ICE_SERVERS.map(s => ({ urls: s.urls, username: s.username, credential: s.credential })),
       headerExtensions: { video: [], audio: [] }
     });
 
@@ -1144,7 +1163,7 @@ async function createConsumerOffer(ws, stream) {
 
   try {
     const pc = new werift.RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: ICE_SERVERS.map(s => ({ urls: s.urls, username: s.username, credential: s.credential })),
       headerExtensions: { video: [], audio: [] }
     });
 
