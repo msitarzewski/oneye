@@ -1,0 +1,6 @@
+{
+  "relays": [
+    { "url": "wss://oe-relay.zerologic.com", "pubkey": "" }
+  ],
+  "updated": "2026-03-12"
+}
