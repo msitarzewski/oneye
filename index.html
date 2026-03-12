@@ -3789,8 +3789,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
 // oneye - Decentralized P2P Live Streaming
 // ============================================================
 
-const IPNS_NAME = ''; // Set after IPNS publish
-const IPNS_GATEWAY = 'https://dweb.link/ipns/';
+const BOOTSTRAP_URL = 'https://msitarzewski.github.io/oneye/relays.json';
 const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 
 // --- Identity Module ---
@@ -4587,19 +4586,21 @@ const Bootstrap = (() => {
   }
 
   async function resolveRelays() {
-    // Priority: URL hash > IPNS > well-known > DNS > self
+    // Priority: URL hash > GitHub Pages bootstrap > well-known > DNS > self
     const hashRelay = getRelayFromHash();
     if (hashRelay && isValidRelayUrl(hashRelay)) return [{ url: hashRelay, pubkey: '' }];
 
-    if (IPNS_NAME) {
+    // GitHub Pages bootstrap — stable URL you control, update when relay moves
+    if (BOOTSTRAP_URL) {
       try {
-        const resp = await fetch(`${IPNS_GATEWAY}${IPNS_NAME}/relays.json`);
+        const resp = await fetch(BOOTSTRAP_URL, { cache: 'no-cache' });
         if (resp.ok) {
           const data = await resp.json();
-          if (data.relays?.length > 0) return data.relays;
+          const valid = (data.relays || []).filter(r => isValidRelayUrl(r.url));
+          if (valid.length > 0) return valid;
         }
       } catch (e) {
-        console.warn('[Bootstrap] IPNS resolve failed:', e);
+        console.warn('[Bootstrap] GitHub Pages relay fetch failed:', e);
       }
     }
 
