@@ -27,8 +27,22 @@ try {
   console.warn('[SFU] werift unavailable, WebRTC disabled:', e.message);
 }
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
-const PUBLIC_URL = process.env.PUBLIC_URL || null; // e.g., wss://relay.example.com
+// --- Load config file (env vars override config.json) ---
+let fileConfig = {};
+try {
+  const raw = await readFile(new URL('./config.json', import.meta.url), 'utf8');
+  fileConfig = JSON.parse(raw);
+  console.log('[oneye] Loaded config.json');
+} catch {
+  // No config file — use env vars and defaults
+}
+
+function conf(envKey, fileKey, fallback) {
+  return process.env[envKey] ?? fileConfig[fileKey] ?? fallback;
+}
+
+const PORT = parseInt(conf('PORT', 'port', '3000'), 10);
+const PUBLIC_URL = conf('PUBLIC_URL', 'publicUrl', null);
 const TOPIC = crypto.createHash('sha256').update('oneye:live-streams:v1').digest();
 const PRESENCE_TTL = 30_000; // 30s expiry for stale streams
 const PING_INTERVAL = 30_000;
@@ -38,16 +52,31 @@ const RELAY_ANNOUNCE_INTERVAL = 30_000;
 // Each relay operator configures their own TURN server via env vars.
 // Clients receive the ICE config on WebSocket connect.
 const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
-if (process.env.TURN_URL) {
+const _turnUrl = conf('TURN_URL', 'turnUrl', null);
+if (_turnUrl) {
   ICE_SERVERS.push({
-    urls: process.env.TURN_URL,                    // e.g., turn:relay.example.com:3478
-    username: process.env.TURN_USERNAME || '',
-    credential: process.env.TURN_CREDENTIAL || ''
+    urls: _turnUrl,
+    username: conf('TURN_USERNAME', 'turnUsername', ''),
+    credential: conf('TURN_CREDENTIAL', 'turnCredential', '')
   });
-  console.log(`[ICE] TURN server configured: ${process.env.TURN_URL}`);
+  console.log(`[ICE] TURN server configured: ${_turnUrl}`);
 } else {
   console.log('[ICE] No TURN server configured (STUN only). Set TURN_URL, TURN_USERNAME, TURN_CREDENTIAL for NAT traversal.');
 }
+
+// --- Security Limits ---
+const MAX_WS_CONNECTIONS = parseInt(conf('MAX_WS_CONNECTIONS', 'maxConnections', '500'), 10);
+const MAX_WS_MESSAGE_SIZE = 512 * 1024;   // 512KB max WebSocket frame
+const MAX_WS_MESSAGES_PER_SEC = 30;       // rate limit per connection
+const MAX_THUMBNAIL_SIZE = 500 * 1024;    // 500KB for base64 thumbnails
+const MAX_SDP_SIZE = 64 * 1024;           // 64KB for SDP payloads
+const MAX_TITLE_LENGTH = 200;
+const MAX_TAG_COUNT = 10;
+const MAX_TAG_LENGTH = 30;
+const _originsRaw = conf('ALLOWED_ORIGINS', 'allowedOrigins', null);
+const ALLOWED_ORIGINS = typeof _originsRaw === 'string'
+  ? _originsRaw.split(',').map(s => s.trim())
+  : (Array.isArray(_originsRaw) ? _originsRaw : null);
 
 // Generate relay keypair for signing relay announcements
 const relayKeyPair = crypto.generateKeyPairSync('ed25519');
@@ -69,6 +98,27 @@ function getPublicUrl() {
   return `${proto}://${hostname}:${PORT}`;
 }
 
+// --- Security Helpers ---
+function securityHeaders(extra = {}) {
+  const headers = {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self)',
+    ...extra
+  };
+  if (PUBLIC_URL?.startsWith('wss://') || conf('FORCE_HSTS', 'forceHsts', null)) {
+    headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
+  }
+  return headers;
+}
+
+function corsOrigin(req) {
+  if (!ALLOWED_ORIGINS) return '*';
+  const origin = req.headers.origin;
+  return ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+}
+
 // --- HTTP Server ---
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
@@ -78,14 +128,18 @@ const server = createServer(async (req, res) => {
   if (pathname === '/' || pathname.endsWith('/index.html') || pathname.endsWith('/')) {
     try {
       const html = await readFile(new URL('./index.html', import.meta.url));
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Security-Policy': "default-src 'self' 'unsafe-inline' data: blob: wss: ws: https:; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' wss: ws: https:; object-src 'none'; base-uri 'self'",
+        ...securityHeaders()
+      });
       res.end(html);
     } catch {
-      res.writeHead(500);
+      res.writeHead(500, securityHeaders());
       res.end('index.html not found');
     }
   } else if (pathname === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.writeHead(200, { 'Content-Type': 'application/json', ...securityHeaders() });
     res.end(JSON.stringify({
       ok: true,
       streams: streams.size,
@@ -95,7 +149,7 @@ const server = createServer(async (req, res) => {
     }));
   } else if (pathname === '/.well-known/oneye.json') {
     // Well-known endpoint for relay discovery (Phase 5.1)
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.writeHead(200, { 'Content-Type': 'application/json', ...securityHeaders() });
     res.end(JSON.stringify({
       relays: [
         { url: getPublicUrl(), pubkey: relayPubkeyHex },
@@ -104,7 +158,7 @@ const server = createServer(async (req, res) => {
     }));
   } else if (pathname === '/relays') {
     // Relay list endpoint
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.writeHead(200, { 'Content-Type': 'application/json', ...securityHeaders() });
     res.end(JSON.stringify({
       self: { url: getPublicUrl(), pubkey: relayPubkeyHex },
       peers: Array.from(knownRelays.values())
@@ -114,7 +168,7 @@ const server = createServer(async (req, res) => {
     const proto = req.headers['x-forwarded-proto'] || (PORT === 443 ? 'https' : 'http');
     const host = req.headers['x-forwarded-host'] || req.headers.host;
     const baseUrl = `${proto}://${host}`;
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.writeHead(200, { 'Content-Type': 'application/json', ...securityHeaders() });
     res.end(JSON.stringify({
       client_id: `${baseUrl}/client-metadata.json`,
       client_name: 'oneye Live Streaming',
@@ -134,11 +188,12 @@ const server = createServer(async (req, res) => {
       const data = await fsReadFile(indexPath);
       res.writeHead(200, {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': corsOrigin(req),
+        ...securityHeaders()
       });
       res.end(data);
     } catch {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.writeHead(200, { 'Content-Type': 'application/json', ...securityHeaders() });
       res.end(JSON.stringify({ version: 1, archives: [] }));
     }
   } else if (pathname.startsWith('/archives/')) {
@@ -147,7 +202,7 @@ const server = createServer(async (req, res) => {
     const filePath = path.join(ARCHIVES_DIR, relativePath);
     // Security check - prevent directory traversal
     if (!filePath.startsWith(ARCHIVES_DIR + path.sep)) {
-      res.writeHead(403);
+      res.writeHead(403, securityHeaders());
       res.end('Forbidden');
       return;
     }
@@ -165,24 +220,34 @@ const server = createServer(async (req, res) => {
       res.writeHead(200, {
         'Content-Type': contentTypes[ext] || 'application/octet-stream',
         'Content-Length': fileStat.size,
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': corsOrigin(req),
+        ...securityHeaders()
       });
       createReadStream(filePath).pipe(res);
     } catch {
-      res.writeHead(404);
+      res.writeHead(404, securityHeaders());
       res.end('Not found');
     }
   } else {
-    res.writeHead(404);
+    res.writeHead(404, securityHeaders());
     res.end('Not found');
   }
 });
 
 // --- WebSocket Server ---
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ server, maxPayload: MAX_WS_MESSAGE_SIZE });
 
 wss.on('connection', (ws) => {
-  const clientState = { pubkey: null, subscribed: false, peerConnection: null, role: null, streamId: null };
+  // --- Connection limit ---
+  if (clients.size >= MAX_WS_CONNECTIONS) {
+    ws.close(1013, 'Server at capacity');
+    return;
+  }
+
+  const clientState = {
+    pubkey: null, subscribed: false, peerConnection: null, role: null, streamId: null,
+    msgTokens: MAX_WS_MESSAGES_PER_SEC, msgLastRefill: Date.now()
+  };
   clients.set(ws, clientState);
 
   ws.isAlive = true;
@@ -192,6 +257,18 @@ wss.on('connection', (ws) => {
   send(ws, { type: 'ice_servers', iceServers: ICE_SERVERS });
 
   ws.on('message', (data) => {
+    // --- Rate limit ---
+    const state = clients.get(ws);
+    const now = Date.now();
+    if (now - state.msgLastRefill >= 1000) {
+      state.msgTokens = MAX_WS_MESSAGES_PER_SEC;
+      state.msgLastRefill = now;
+    }
+    if (state.msgTokens <= 0) {
+      return send(ws, { type: 'error', message: 'Rate limited' });
+    }
+    state.msgTokens--;
+
     let msg;
     try {
       msg = JSON.parse(data);
@@ -356,6 +433,20 @@ async function handleAnnounce(ws, msg) {
   }
 
   const streamId = presence.stream.id;
+
+  // --- Input validation ---
+  if (typeof presence.stream.title === 'string' && presence.stream.title.length > MAX_TITLE_LENGTH) {
+    return send(ws, { type: 'error', message: `Title exceeds ${MAX_TITLE_LENGTH} chars` });
+  }
+  if (Array.isArray(presence.stream.tags)) {
+    if (presence.stream.tags.length > MAX_TAG_COUNT) {
+      return send(ws, { type: 'error', message: `Max ${MAX_TAG_COUNT} tags allowed` });
+    }
+    if (presence.stream.tags.some(t => typeof t !== 'string' || t.length > MAX_TAG_LENGTH)) {
+      return send(ws, { type: 'error', message: `Tags must be strings of max ${MAX_TAG_LENGTH} chars` });
+    }
+  }
+
   const state = clients.get(ws);
   state.pubkey = presence.pubkey;
   state.role = 'broadcaster';
@@ -717,6 +808,10 @@ function handleThumbnail(ws, msg) {
   const stream = streams.get(streamId);
   if (!stream) return;
 
+  // Validate thumbnail size and format
+  if (typeof data !== 'string' || data.length > MAX_THUMBNAIL_SIZE) return;
+  if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(data)) return;
+
   // Store thumbnail with stream
   stream.thumbnail = data;
 
@@ -752,7 +847,7 @@ function handleBandwidthReport(ws, msg) {
 function handleSignalForward(ws, msg) {
   const { sdp, streamId } = msg;
   console.log(`[Signal] signal_forward received, hasSdp=${!!sdp}`);
-  if (!sdp) return;
+  if (!sdp || typeof sdp !== 'string' || sdp.length > MAX_SDP_SIZE) return;
 
   const state = clients.get(ws);
 
@@ -770,6 +865,7 @@ function handleSignalForward(ws, msg) {
 
 async function handleAnswer(ws, msg) {
   const { sdp } = msg;
+  if (typeof sdp !== 'string' || sdp.length > MAX_SDP_SIZE) return;
   const state = clients.get(ws);
 
   if (state.role === 'viewer' && state.consumerPC) {
@@ -783,6 +879,7 @@ async function handleAnswer(ws, msg) {
 
 async function handleCandidate(ws, msg) {
   const { candidate } = msg;
+  if (candidate && typeof candidate.candidate === 'string' && candidate.candidate.length > 2048) return;
   const state = clients.get(ws);
   const pc = state.role === 'broadcaster'
     ? streams.get(state.streamId)?.producerPC
@@ -870,7 +967,7 @@ async function stopRecording(streamId, stream) {
   if (stream.thumbnail) {
     try {
       // thumbnail is base64 data URL like "data:image/jpeg;base64,..."
-      const matches = stream.thumbnail.match(/^data:image\/(\w+);base64,(.+)$/);
+      const matches = stream.thumbnail.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
       if (matches) {
         const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
         const data = Buffer.from(matches[2], 'base64');
@@ -958,6 +1055,9 @@ async function handleBroadcasterOffer(ws, msg) {
   }
 
   const { sdp, streamId } = msg;
+  if (typeof sdp !== 'string' || sdp.length > MAX_SDP_SIZE) {
+    return send(ws, { type: 'error', message: 'SDP too large' });
+  }
   let stream = streams.get(streamId);
 
   // Create stream if it doesn't exist yet (race with announce)
@@ -1358,6 +1458,12 @@ function handleDHTRelayAnnounce(msg) {
     return;
   }
 
+  // Validate relay URL scheme
+  if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
+    console.warn('[DHT] Invalid relay URL scheme:', url);
+    return;
+  }
+
   // Store/update known relay
   const existing = knownRelays.get(url);
   if (!existing || existing.timestamp < timestamp) {
@@ -1518,9 +1624,10 @@ function getRelayList() {
 }
 
 // --- Startup ---
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = conf('HOST', 'host', '0.0.0.0');
 server.listen(PORT, HOST, () => {
   console.log(`[oneye] Relay listening on http://${HOST}:${PORT}`);
+  if (PUBLIC_URL) console.log(`[oneye] Public URL: ${PUBLIC_URL}`);
   // Show LAN IP for easy sharing
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
@@ -1530,6 +1637,14 @@ server.listen(PORT, HOST, () => {
       }
     }
   }
+  // Production warnings
+  if (HOST === '0.0.0.0' && PUBLIC_URL?.startsWith('wss://')) {
+    console.warn('[oneye] ⚠ Binding to 0.0.0.0 in production. Consider HOST=127.0.0.1 behind a reverse proxy.');
+  }
+  if (!ALLOWED_ORIGINS) {
+    console.warn('[oneye] ⚠ ALLOWED_ORIGINS not set — CORS is unrestricted. Set ALLOWED_ORIGINS=https://yourdomain.com for production.');
+  }
+
   initSwarm();
 });
 
