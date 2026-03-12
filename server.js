@@ -34,6 +34,21 @@ const PRESENCE_TTL = 30_000; // 30s expiry for stale streams
 const PING_INTERVAL = 30_000;
 const RELAY_ANNOUNCE_INTERVAL = 30_000;
 
+// --- ICE/TURN Configuration ---
+// Each relay operator configures their own TURN server via env vars.
+// Clients receive the ICE config on WebSocket connect.
+const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+if (process.env.TURN_URL) {
+  ICE_SERVERS.push({
+    urls: process.env.TURN_URL,                    // e.g., turn:relay.example.com:3478
+    username: process.env.TURN_USERNAME || '',
+    credential: process.env.TURN_CREDENTIAL || ''
+  });
+  console.log(`[ICE] TURN server configured: ${process.env.TURN_URL}`);
+} else {
+  console.log('[ICE] No TURN server configured (STUN only). Set TURN_URL, TURN_USERNAME, TURN_CREDENTIAL for NAT traversal.');
+}
+
 // Generate relay keypair for signing relay announcements
 const relayKeyPair = crypto.generateKeyPairSync('ed25519');
 const relayPubkeyHex = relayKeyPair.publicKey.export({ type: 'spki', format: 'der' }).subarray(12).toString('hex');
@@ -172,6 +187,9 @@ wss.on('connection', (ws) => {
 
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
+
+  // Send ICE config so client uses this relay's TURN server
+  send(ws, { type: 'ice_servers', iceServers: ICE_SERVERS });
 
   ws.on('message', (data) => {
     let msg;
@@ -957,7 +975,7 @@ async function handleBroadcasterOffer(ws, msg) {
 
   try {
     const pc = new werift.RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: ICE_SERVERS.map(s => ({ urls: s.urls, username: s.username, credential: s.credential })),
       headerExtensions: { video: [], audio: [] }
     });
 
@@ -1045,7 +1063,7 @@ async function createConsumerOffer(ws, stream) {
 
   try {
     const pc = new werift.RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: ICE_SERVERS.map(s => ({ urls: s.urls, username: s.username, credential: s.credential })),
       headerExtensions: { video: [], audio: [] }
     });
 

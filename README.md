@@ -25,6 +25,9 @@ The relay starts on port 3000 by default and shows all available network interfa
 **Environment variables:**
 - `PORT` - Server port (default: 3000)
 - `PUBLIC_URL` - Public WebSocket URL for relay announcements (e.g., `wss://relay.example.com`)
+- `TURN_URL` - TURN server URL for NAT traversal (e.g., `turn:relay.example.com:3478`)
+- `TURN_USERNAME` - TURN authentication username
+- `TURN_CREDENTIAL` - TURN authentication password
 
 ### Go Live
 
@@ -224,6 +227,43 @@ PUBLIC_URL=wss://relay.yourdomain.com PORT=443 node server.js
 
 Put behind nginx/caddy for TLS termination. Set `PUBLIC_URL` so the relay announces its public address to the DHT.
 
+### TURN Server (Optional)
+
+WebRTC requires direct UDP connections between peers. ~15-20% of users are behind symmetric NAT or restrictive firewalls where STUN alone isn't enough. Adding a TURN server provides a relay fallback for these users.
+
+Without TURN, affected users will see stream thumbnails but video won't play.
+
+**Self-hosted with coturn:**
+
+```bash
+# Install coturn
+sudo apt install coturn   # Debian/Ubuntu
+brew install coturn        # macOS
+
+# /etc/turnserver.conf
+listening-port=3478
+min-port=49152
+max-port=50175
+realm=relay.example.com
+user=oneye:your-secret-here
+lt-cred-mech
+fingerprint
+```
+
+Open firewall ports: UDP/TCP 3478 + UDP 49152-50175. TURN traffic goes direct to coturn, not through your reverse proxy.
+
+```bash
+TURN_URL=turn:relay.example.com:3478 \
+TURN_USERNAME=oneye \
+TURN_CREDENTIAL=your-secret-here \
+PUBLIC_URL=wss://relay.example.com \
+node server.js
+```
+
+The relay sends its ICE config (including TURN) to clients on connect. Each relay in the network can run its own TURN server independently.
+
+**Other TURN providers:** Cloudflare Calls TURN (free), metered.ca (free tier), Twilio (paid). Set the env vars to match your provider's credentials.
+
 ## API
 
 ### WebSocket Messages
@@ -240,6 +280,7 @@ Put behind nginx/caddy for TLS termination. Set `PUBLIC_URL` so the relay announ
 - `bandwidth_report` - Report estimated bandwidth for adaptive streaming
 
 **Relay → Client:**
+- `ice_servers` - ICE configuration (STUN + TURN if configured), sent on connect
 - `welcome` / `subscribed` - Connection confirmed, includes stream and relay lists
 - `stream_available` - New stream announced
 - `stream_gone` - Stream ended

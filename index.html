@@ -3791,7 +3791,8 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
 
 const IPNS_NAME = ''; // Set after IPNS publish
 const IPNS_GATEWAY = 'https://dweb.link/ipns/';
-const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+// ICE servers - STUN default, relay sends TURN config on connect
+let ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 
 // --- Identity Module ---
 const Identity = (() => {
@@ -4799,6 +4800,12 @@ const Discovery = (() => {
 
   function handleMessage(msg) {
     switch (msg.type) {
+      case 'ice_servers':
+        if (msg.iceServers && Array.isArray(msg.iceServers)) {
+          ICE_SERVERS = msg.iceServers;
+          console.log(`[ICE] Received ${ICE_SERVERS.length} ICE server(s) from relay`, ICE_SERVERS.map(s => s.urls));
+        }
+        break;
       case 'welcome':
       case 'subscribed':
         // Store relay list from server (Phase 1.3)
