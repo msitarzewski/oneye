@@ -938,7 +938,9 @@ async function startTrackRecording(stream, track) {
         tracks: stream.recording.pendingTracks,
         numOfTracks: 2,
         width: 1280,
-        height: 720
+        height: 720,
+        disableNtp: true,
+        disableLipSync: true,
       });
 
       stream.recording.recorder.onError.subscribe((error) => {
