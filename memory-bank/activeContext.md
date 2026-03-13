@@ -17,10 +17,18 @@ Fixed server-side stream recording and improved archive player UI.
 - Removed duplicate `.archive-card` CSS block (old version at ~line 1748, kept "Enhanced" version at ~line 2970)
 - Consolidated archive player controls into centered top bar above video (`archive-topbar`) — title, meta, and close button in one row, max-width matched to video (900px)
 
+#### Archive Relay URL Fix
+- Archive fetching, thumbnails, and video URLs used relative paths (`/archives`, `/${thumbnail}`) — only worked when served from relay
+- Added `getRelayHttpBase()` in Archives module — derives HTTP base URL from WS relay URL (`wss://` → `https://`)
+- All archive resource URLs now absolute: `${base}/archives`, `${base}/${thumbnail}`, `${base}/${storage.path}`
+- Archives reload after relay connection established (`Discovery.onConnected`)
+- `docs/index.html` kept in sync with `index.html` for GitHub Pages
+
 #### Deployment
 - oneye relay running as systemd user service on umacbookpro (`~/.config/systemd/user/oneye.service`)
 - Linger enabled for boot persistence without login
 - Cloudflare caching in front of oe-relay.zerologic.com — may need cache purge after recording remux changes file size
+- GitHub Pages serves from `docs/index.html` — must be kept in sync with root `index.html`
 
 ---
 
