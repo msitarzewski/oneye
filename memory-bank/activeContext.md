@@ -1,8 +1,30 @@
 # Active Context - oneye
 
-## Current State (2025-01-27)
+## Current State (2026-03-13)
 
-### Recently Completed: Location Reverse Geocoding
+### Recently Completed: Recording Playback Fixes & Archive UI
+
+Fixed server-side stream recording and improved archive player UI.
+
+#### Recording Fixes
+- werift MediaRecorder writes WebM with unknown segment size and no Cues — browsers can't seek or determine duration
+- Added ffmpeg remux step in `finalizeRecording()` to rewrite proper headers after recording stops (`server.js:~880`)
+- Disabled NTP timing (`disableNtp: true, disableLipSync: true`) in MediaRecorder — NtpTimeCallback waits for RTCP Sender Reports which may never arrive on short streams, causing zero video frames
+- Falls back gracefully if ffmpeg unavailable
+
+#### Archive UI Fixes
+- Switched `.archive-grid` from CSS `columns` to CSS `grid` — fixes shadow clipping and uneven card spacing
+- Removed duplicate `.archive-card` CSS block (old version at ~line 1748, kept "Enhanced" version at ~line 2970)
+- Consolidated archive player controls into centered top bar above video (`archive-topbar`) — title, meta, and close button in one row, max-width matched to video (900px)
+
+#### Deployment
+- oneye relay running as systemd user service on umacbookpro (`~/.config/systemd/user/oneye.service`)
+- Linger enabled for boot persistence without login
+- Cloudflare caching in front of oe-relay.zerologic.com — may need cache purge after recording remux changes file size
+
+---
+
+### Previously: Location Reverse Geocoding
 
 Implemented reverse geocoding so location displays human-readable names instead of coordinates.
 

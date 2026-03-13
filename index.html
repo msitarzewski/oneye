@@ -1736,112 +1736,14 @@ footer {
 
 /* Archive Grid */
 .archive-grid {
-  columns: 1;
-  column-gap: 16px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-@media (min-width: 500px) { .archive-grid { columns: 2; } }
-@media (min-width: 900px) { .archive-grid { columns: 3; } }
-@media (min-width: 1200px) { .archive-grid { columns: 4; } }
-
-/* Archive Card */
-.archive-card {
-  break-inside: avoid;
-  margin-bottom: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.archive-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 60px var(--accent-glow);
-}
-
-.archive-card .preview {
-  width: 100%;
-  min-height: 100px;
-  background: linear-gradient(145deg, #0a0a14 0%, #12121f 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.archive-card .preview .play-icon {
-  position: absolute;
-  font-size: 40px;
-  opacity: 0.5;
-  color: white;
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.archive-card:hover .preview .play-icon {
-  opacity: 0.9;
-  transform: scale(1.1);
-}
-
-.archive-card .preview img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.archive-card .duration {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  font-size: 11px;
-  font-family: 'SF Mono', monospace;
-  padding: 3px 6px;
-  border-radius: 4px;
-}
-
-.archive-card .info {
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-top: 1px solid var(--glass-border);
-}
-
-.archive-card .title {
-  font-size: 13px;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.archive-card .meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.archive-card .tags {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.archive-card .tag {
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--border);
-  color: var(--text-dim);
-}
+@media (min-width: 500px) { .archive-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) { .archive-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1200px) { .archive-grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* Archive Player Overlay */
 .archive-player {
@@ -1859,31 +1761,60 @@ footer {
   display: flex;
 }
 
-.archive-player video {
+.archive-player .archive-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
   width: 100%;
-  max-height: 85vh;
-  object-fit: contain;
-  background: #000;
+  max-width: 900px;
+}
+
+.archive-player .archive-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  padding: 10px 16px;
   border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  flex: 1;
+  min-width: 0;
+}
+
+.archive-player .archive-title {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.archive-player .archive-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: 'SF Mono', monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .archive-player .close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius);
   background: var(--glass);
   backdrop-filter: blur(10px);
   border: 1px solid var(--glass-border);
   color: white;
-  font-size: 22px;
+  font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .archive-player .close-btn:hover {
@@ -1891,28 +1822,13 @@ footer {
   border-color: var(--accent);
 }
 
-.archive-player .archive-info {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  padding: 14px 18px;
+.archive-player video {
+  width: 100%;
+  max-width: 900px;
+  max-height: 80vh;
+  object-fit: contain;
+  background: #000;
   border-radius: var(--radius);
-  border: 1px solid var(--glass-border);
-  max-width: 300px;
-}
-
-.archive-player .archive-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.archive-player .archive-meta {
-  font-size: 11px;
-  color: var(--text-dim);
-  font-family: 'SF Mono', monospace;
 }
 
 /* Tags Input */
@@ -2969,8 +2885,6 @@ footer {
 
 /* Enhanced Archive Cards */
 .archive-card {
-  break-inside: avoid;
-  margin-bottom: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -3676,12 +3590,14 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
 </div>
 
 <div class="archive-player" id="archivePlayer">
-  <button class="close-btn" id="closeArchivePlayer">&times;</button>
-  <video id="archiveVideo" controls playsinline></video>
-  <div class="archive-info" id="archivePlayerInfo">
-    <div class="archive-title" id="archivePlayerTitle"></div>
-    <div class="archive-meta" id="archivePlayerMeta"></div>
+  <div class="archive-topbar">
+    <div class="archive-info" id="archivePlayerInfo">
+      <span class="archive-title" id="archivePlayerTitle"></span>
+      <span class="archive-meta" id="archivePlayerMeta"></span>
+    </div>
+    <button class="close-btn" id="closeArchivePlayer">&times;</button>
   </div>
+  <video id="archiveVideo" controls playsinline></video>
 </div>
 
 <div class="viewer-overlay" id="viewerOverlay">
