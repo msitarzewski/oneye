@@ -1,12 +1,16 @@
 import { createServer } from 'http';
-import { readFile, mkdir, writeFile, readFile as fsReadFile, stat } from 'fs/promises';
+import { readFile, mkdir, writeFile, readFile as fsReadFile, stat, rename, unlink } from 'fs/promises';
 import { createReadStream } from 'fs';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import path from 'path';
 import { WebSocketServer } from 'ws';
 import Hyperswarm from 'hyperswarm';
 import crypto from 'crypto';
 import { WebSocket } from 'ws';
 import os from 'os';
+
+const execFileAsync = promisify(execFile);
 
 const ARCHIVES_DIR = path.join(process.cwd(), 'archives');
 
@@ -992,6 +996,19 @@ async function finalizeRecording(streamId, stream) {
 
   // Wait for file to be written
   await new Promise(r => setTimeout(r, 500));
+
+  // Remux with ffmpeg to fix duration/seeking headers
+  const tempPath = outputPath.replace('.webm', '.tmp.webm');
+  try {
+    await rename(outputPath, tempPath);
+    await execFileAsync('ffmpeg', ['-i', tempPath, '-c', 'copy', '-y', outputPath], { timeout: 30000 });
+    await unlink(tempPath);
+    console.log(`[Recording] Remuxed: ${streamId.slice(0, 8)}`);
+  } catch (e) {
+    console.error(`[Recording] Remux failed: ${e.message}`);
+    // Fall back to original file if ffmpeg fails
+    try { await rename(tempPath, outputPath); } catch {}
+  }
 
   // Get file size
   let fileSize = 0;
