@@ -1,5 +1,5 @@
 import { createServer } from 'http';
-import { readFile, mkdir, writeFile, readFile as fsReadFile, stat, rename, unlink } from 'fs/promises';
+import { readFile, mkdir, writeFile, readFile as fsReadFile, stat, rename, unlink, rm } from 'fs/promises';
 import { createReadStream } from 'fs';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
@@ -77,6 +77,7 @@ const MAX_SDP_SIZE = 64 * 1024;           // 64KB for SDP payloads
 const MAX_TITLE_LENGTH = 200;
 const MAX_TAG_COUNT = 10;
 const MAX_TAG_LENGTH = 30;
+const MAX_CHAT_MESSAGE_LENGTH = 500;
 const _originsRaw = conf('ALLOWED_ORIGINS', 'allowedOrigins', null);
 const ALLOWED_ORIGINS = typeof _originsRaw === 'string'
   ? _originsRaw.split(',').map(s => s.trim())
@@ -125,6 +126,19 @@ function corsOrigin(req) {
 
 // --- HTTP Server ---
 const server = createServer(async (req, res) => {
+  // CORS preflight — early return before route matching
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': corsOrigin(req),
+      'Access-Control-Allow-Methods': 'GET, OPTIONS, DELETE',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400',
+      ...securityHeaders()
+    });
+    res.end();
+    return;
+  }
+
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
 
@@ -134,7 +148,7 @@ const server = createServer(async (req, res) => {
       const html = await readFile(new URL('./index.html', import.meta.url));
       res.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Security-Policy': "default-src 'self' 'unsafe-inline' data: blob: wss: ws: https:; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' wss: ws: https:; object-src 'none'; base-uri 'self'",
+        'Content-Security-Policy': "default-src 'self' 'unsafe-inline' data: blob: wss: ws: https:; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' wss: ws: https:; object-src 'none'; base-uri 'self'",
         ...securityHeaders()
       });
       res.end(html);
@@ -200,6 +214,42 @@ const server = createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json', ...securityHeaders() });
       res.end(JSON.stringify({ version: 1, archives: [] }));
     }
+  } else if (pathname.match(/^\/archives\/[^/]+\/delete$/) && req.method === 'POST') {
+    // Delete an archive by streamId (POST to avoid Cloudflare OPTIONS interception)
+    const streamId = pathname.split('/')[2];
+    if (!/^[a-f0-9]+$/.test(streamId)) {
+      res.writeHead(400, { 'Content-Type': 'application/json', ...securityHeaders() });
+      res.end(JSON.stringify({ error: 'Invalid archive ID' }));
+      return;
+    }
+    const archiveDir = path.join(ARCHIVES_DIR, streamId);
+    if (!archiveDir.startsWith(ARCHIVES_DIR + path.sep)) {
+      res.writeHead(403, securityHeaders());
+      res.end('Forbidden');
+      return;
+    }
+    try {
+      await rm(archiveDir, { recursive: true, force: true });
+      // Update index.json — remove the deleted entry
+      const indexPath = path.join(ARCHIVES_DIR, 'index.json');
+      try {
+        const index = JSON.parse(await fsReadFile(indexPath, 'utf8'));
+        index.archives = (index.archives || []).filter(a => a.id !== streamId);
+        index.updatedAt = Date.now();
+        await writeFile(indexPath, JSON.stringify(index, null, 2));
+      } catch {}
+      console.log(`[Archives] Deleted: ${streamId.slice(0, 8)}`);
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': corsOrigin(req),
+        ...securityHeaders()
+      });
+      res.end(JSON.stringify({ ok: true, id: streamId }));
+    } catch (e) {
+      console.error(`[Archives] Delete failed: ${e.message}`);
+      res.writeHead(500, { 'Content-Type': 'application/json', ...securityHeaders() });
+      res.end(JSON.stringify({ error: 'Delete failed' }));
+    }
   } else if (pathname.startsWith('/archives/')) {
     // Serve recording files
     const relativePath = pathname.slice('/archives/'.length);
@@ -232,6 +282,16 @@ const server = createServer(async (req, res) => {
       res.writeHead(404, securityHeaders());
       res.end('Not found');
     }
+  } else if (pathname === '/embed' || pathname === '/embed/') {
+    // Embeddable player — omit X-Frame-Options so it can be iframed
+    const embedHeaders = securityHeaders();
+    delete embedHeaders['X-Frame-Options'];
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Security-Policy': "default-src 'self' 'unsafe-inline' data: blob: wss: ws: https:; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' wss: ws: https:; object-src 'none'; base-uri 'self'",
+      ...embedHeaders
+    });
+    res.end(generateEmbedHtml());
   } else {
     res.writeHead(404, securityHeaders());
     res.end('Not found');
@@ -280,7 +340,7 @@ wss.on('connection', (ws) => {
       return send(ws, { type: 'error', message: 'Invalid JSON' });
     }
     // Reduce noise from frequent messages
-    if (!['candidate', 'bandwidth_report', 'ping', 'thumbnail'].includes(msg.type)) {
+    if (!['candidate', 'bandwidth_report', 'ping', 'thumbnail', 'chat'].includes(msg.type)) {
       console.log(`[WS] Received: ${msg.type}`);
     }
     handleMessage(ws, msg);
@@ -355,6 +415,8 @@ function handleMessage(ws, msg) {
       return handleForwardSlots(ws, msg);
     case 'forward_candidate':
       return handleForwardCandidate(ws, msg);
+    case 'chat':
+      return handleChat(ws, msg);
     case 'thumbnail':
       return handleThumbnail(ws, msg);
     case 'ping':
@@ -823,6 +885,31 @@ function handleThumbnail(ws, msg) {
   broadcast({ type: 'thumbnail', streamId, data }, ws);
 }
 
+// --- Chat ---
+function handleChat(ws, msg) {
+  const { streamId, text } = msg;
+  const state = clients.get(ws);
+
+  if (!streamId || !streams.has(streamId)) {
+    return send(ws, { type: 'error', message: 'Stream not found' });
+  }
+  if (typeof text !== 'string' || text.length === 0 || text.length > MAX_CHAT_MESSAGE_LENGTH) {
+    return send(ws, { type: 'error', message: 'Invalid chat message' });
+  }
+  if (!state.pubkey) {
+    return send(ws, { type: 'error', message: 'Not subscribed' });
+  }
+
+  const chatMsg = { type: 'chat', streamId, text, pubkey: state.pubkey, ts: Date.now() };
+
+  // Relay to all clients subscribed to this stream
+  for (const [clientWs, clientState] of clients) {
+    if (clientWs.readyState === 1 && clientState.subscribed) {
+      send(clientWs, chatMsg);
+    }
+  }
+}
+
 // --- Bandwidth/Layer Selection (Phase 3.2) ---
 function handleBandwidthReport(ws, msg) {
   const { bandwidth } = msg;
@@ -1019,6 +1106,13 @@ async function finalizeRecording(streamId, stream) {
     fileSize = stats.size;
   } catch {}
 
+  // Skip broken recordings (< 1KB)
+  if (fileSize < 1024) {
+    console.warn(`[Recording] Skipping broken recording ${streamId.slice(0, 8)}: ${fileSize} bytes`);
+    try { await rm(stream.recording.dir, { recursive: true, force: true }); } catch {}
+    return;
+  }
+
   // Create metadata.json
   const metadata = {
     id: streamId,
@@ -1026,6 +1120,10 @@ async function finalizeRecording(streamId, stream) {
     broadcaster: { pubkey: stream.presence.pubkey, signature: stream.presence.signature },
     title: stream.presence.stream.title || 'Untitled Stream',
     tags: stream.presence.stream.tags || [],
+    tracks: {
+      video: (stream.recording.pendingTracks || []).some(t => t.kind === 'video'),
+      audio: (stream.recording.pendingTracks || []).some(t => t.kind === 'audio')
+    },
     recording: {
       startedAt: stream.recording.startedAt,
       endedAt: Date.now(),
@@ -1666,6 +1764,161 @@ server.listen(PORT, HOST, () => {
 
   initSwarm();
 });
+
+// --- Embed HTML generator ---
+function generateEmbedHtml() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>oneye embed</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;overflow:hidden;font-family:system-ui,sans-serif}
+video{width:100%;height:100vh;object-fit:contain;background:#000}
+.title-overlay{position:fixed;top:0;left:0;right:0;padding:12px 16px;
+  background:linear-gradient(rgba(0,0,0,.7),transparent);color:#fff;
+  font-size:14px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:2}
+body:hover .title-overlay{opacity:1}
+.status{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  color:#888;font-size:12px;z-index:2}
+.live-badge{display:inline-block;background:#ff3366;color:#fff;font-size:11px;
+  padding:2px 8px;border-radius:4px;margin-left:8px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="title-overlay" id="titleOverlay"></div>
+<video id="video" autoplay playsinline muted></video>
+<div class="status" id="status">Connecting...</div>
+<script>
+(function(){
+  const params = {};
+  location.hash.slice(1).split('&').forEach(p => {
+    const [k,v] = p.split('=');
+    if (k) params[decodeURIComponent(k)] = decodeURIComponent(v||'');
+  });
+
+  const video = document.getElementById('video');
+  const titleEl = document.getElementById('titleOverlay');
+  const statusEl = document.getElementById('status');
+  const streamId = params.id;
+  const relayUrl = params.relay;
+  const dest = params.dest || 'stream';
+
+  if (!streamId || !relayUrl) {
+    statusEl.textContent = 'Missing parameters (id, relay)';
+    return;
+  }
+
+  // Archive playback mode
+  if (dest === 'archive') {
+    const httpBase = relayUrl.replace(/^ws(s?):\\/\\//, 'http$1://').replace(/\\/$/, '');
+    video.src = httpBase + '/archives/' + streamId + '/recording.webm';
+    video.muted = false;
+    video.controls = true;
+    video.play().catch(() => {});
+    statusEl.textContent = '';
+    // Fetch metadata for title
+    fetch(httpBase + '/archives/' + streamId + '/metadata.json')
+      .then(r => r.json())
+      .then(m => { titleEl.textContent = m.title || 'Archive'; })
+      .catch(() => {});
+    return;
+  }
+
+  // Live stream mode via WebRTC
+  let ws, pc;
+  const iceServers = [{urls:'stun:stun.l.google.com:19302'}];
+
+  function connect() {
+    ws = new WebSocket(relayUrl.replace(/\\/$/, ''));
+    ws.onopen = () => {
+      statusEl.textContent = 'Connected, waiting for stream...';
+      ws.send(JSON.stringify({type:'subscribe',pubkey:'embed-'+Math.random().toString(36).slice(2,8)}));
+    };
+    ws.onmessage = (e) => {
+      let msg;
+      try { msg = JSON.parse(e.data); } catch { return; }
+      switch(msg.type) {
+        case 'ice_servers':
+          if (msg.iceServers) msg.iceServers.forEach(s => iceServers.push(s));
+          break;
+        case 'welcome':
+        case 'subscribed':
+          if (msg.streams) {
+            const s = msg.streams.find(s => s.stream?.id === streamId);
+            if (s) {
+              titleEl.textContent = (s.stream?.title || 'Live') + '<span class="live-badge">LIVE</span>';
+              titleEl.innerHTML = titleEl.textContent;
+              startViewing();
+            }
+          }
+          break;
+        case 'stream_available':
+          if (msg.presence?.stream?.id === streamId) {
+            titleEl.innerHTML = (msg.presence.stream?.title || 'Live') + '<span class="live-badge">LIVE</span>';
+            startViewing();
+          }
+          break;
+        case 'signal':
+          if (msg.sdp && pc) {
+            pc.setRemoteDescription({type:'offer',sdp:msg.sdp}).then(() =>
+              pc.createAnswer()
+            ).then(a => {
+              pc.setLocalDescription(a);
+              ws.send(JSON.stringify({type:'answer',sdp:a.sdp,streamId}));
+            }).catch(console.error);
+          }
+          break;
+        case 'candidate':
+          if (msg.candidate && pc) {
+            pc.addIceCandidate(msg.candidate).catch(()=>{});
+          }
+          break;
+        case 'stream_gone':
+          if (msg.streamId === streamId) {
+            statusEl.textContent = 'Stream ended';
+            if (pc) { pc.close(); pc = null; }
+          }
+          break;
+      }
+    };
+    ws.onclose = () => setTimeout(connect, 3000);
+    ws.onerror = () => {};
+  }
+
+  function startViewing() {
+    if (pc) return;
+    statusEl.textContent = 'Connecting to stream...';
+    pc = new RTCPeerConnection({iceServers});
+    pc.ontrack = (e) => {
+      video.srcObject = e.streams[0] || new MediaStream([e.track]);
+      video.play().catch(() => {});
+      statusEl.textContent = '';
+    };
+    pc.onicecandidate = (e) => {
+      if (e.candidate && ws.readyState === 1) {
+        ws.send(JSON.stringify({type:'candidate',candidate:e.candidate,streamId}));
+      }
+    };
+    pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+        statusEl.textContent = 'Connection lost';
+        pc.close(); pc = null;
+        setTimeout(startViewing, 2000);
+      }
+    };
+    // Request to view
+    ws.send(JSON.stringify({type:'view',streamId}));
+  }
+
+  connect();
+})();
+</script>
+</body>
+</html>`;
+}
 
 // Graceful shutdown
 process.on('SIGINT', async () => {

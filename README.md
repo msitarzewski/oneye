@@ -217,6 +217,7 @@ git clone <repo>
 cd oneye
 npm install
 node server.js
+or PORT=3333 node server.js
 ```
 
 Share your LAN IP with others on the same network.

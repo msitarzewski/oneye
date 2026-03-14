@@ -1800,7 +1800,8 @@ footer {
   flex-shrink: 0;
 }
 
-.archive-player .close-btn {
+.archive-player .close-btn,
+.archive-action-btn {
   width: 40px;
   height: 40px;
   border-radius: var(--radius);
@@ -1815,7 +1816,10 @@ footer {
   justify-content: center;
   transition: all 0.2s;
   flex-shrink: 0;
+  text-decoration: none;
 }
+.archive-action-btn:hover { background: rgba(255,255,255,0.15); }
+.archive-action-btn svg { width: 18px; height: 18px; }
 
 .archive-player .close-btn:hover {
   background: rgba(255, 255, 255, 0.15);
@@ -1829,6 +1833,103 @@ footer {
   object-fit: contain;
   background: #000;
   border-radius: var(--radius);
+}
+
+/* Chat Panel */
+.chat-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 300px;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 110;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+.chat-panel.open { transform: translateX(0); }
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--glass-border);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.chat-header .close-chat {
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; font-size: 18px; padding: 4px;
+}
+.chat-header .close-chat:hover { color: var(--text); }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chat-msg {
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 4px 0;
+  word-break: break-word;
+}
+.chat-msg .chat-author {
+  font-weight: 600;
+  color: var(--accent);
+  margin-right: 6px;
+  cursor: pointer;
+}
+.chat-msg .chat-author:hover { text-decoration: underline; }
+.chat-msg .chat-text { color: var(--text); }
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--glass-border);
+}
+.chat-input-row input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+.chat-input-row input:focus { border-color: var(--accent); }
+.chat-input-row button {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: #000;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.chat-input-row button:hover { opacity: 0.85; }
+
+@media (max-width: 768px) {
+  .chat-panel {
+    width: 100%; top: auto; bottom: 0; left: 0; right: 0;
+    height: 50vh;
+    border-left: none;
+    border-top: 1px solid var(--glass-border);
+    transform: translateY(100%);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .chat-panel.open { transform: translateY(0); }
 }
 
 /* Tags Input */
@@ -3595,6 +3696,21 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       <span class="archive-title" id="archivePlayerTitle"></span>
       <span class="archive-meta" id="archivePlayerMeta"></span>
     </div>
+    <a class="archive-action-btn" id="archiveDownloadBtn" title="Download" download>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </a>
+    <button class="archive-action-btn" id="archiveEmbedBtn" title="Get embed code">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+      </svg>
+    </button>
+    <button class="archive-action-btn" id="archiveDeleteBtn" title="Delete archive" style="display:none">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+      </svg>
+    </button>
     <button class="close-btn" id="closeArchivePlayer">&times;</button>
   </div>
   <video id="archiveVideo" controls playsinline></video>
@@ -3604,6 +3720,18 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   <button class="close-btn" id="closeViewer">&times;</button>
   <video id="remoteVideo" autoplay playsinline></video>
   <div class="stream-ended" id="streamEnded">Stream ended</div>
+
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <span>Chat</span>
+      <button class="close-chat" id="closeChatBtn">&times;</button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Send a message..." maxlength="500" autocomplete="off">
+      <button id="chatSendBtn">Send</button>
+    </div>
+  </div>
 
   <div class="connection-overlay" id="connectionOverlay">
     <div class="connection-status-box">
@@ -3659,6 +3787,16 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
         </svg>
       </button>
     </div>
+    <button id="chatToggleBtn" title="Chat">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      </svg>
+    </button>
+    <button id="embedShareBtn" title="Get embed code">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+      </svg>
+    </button>
     <a href="#" class="amplify-link" id="amplifyHelp">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -4633,6 +4771,7 @@ const Discovery = (() => {
   let onCandidate = null;
   let onConnected = null;
   let onDisconnected = null;
+  let onChat = null;
 
   let isConnecting = false;
   let lastConnectAttempt = 0;
@@ -4809,6 +4948,11 @@ const Discovery = (() => {
           updateRelayStats(msg.clients, msg.broadcasters || 0, msg.viewers || 0);
         }
         break;
+      case 'chat':
+        if (msg.text && msg.pubkey) {
+          if (onChat) onChat(msg);
+        }
+        break;
       case 'thumbnail':
         if (msg.streamId && msg.data) {
           Thumbnail.updatePreview(msg.streamId, msg.data);
@@ -4865,7 +5009,8 @@ const Discovery = (() => {
     set onSignal(fn) { onSignal = fn; },
     set onCandidate(fn) { onCandidate = fn; },
     set onConnected(fn) { onConnected = fn; },
-    set onDisconnected(fn) { onDisconnected = fn; }
+    set onDisconnected(fn) { onDisconnected = fn; },
+    set onChat(fn) { onChat = fn; }
   };
 })();
 
@@ -7561,6 +7706,7 @@ const BroadcastSetup = (() => {
 // --- Archive Module ---
 const Archives = (() => {
   let archiveList = [];
+  let currentArchive = null;
 
   async function init() {
     // Archive player close button
@@ -7576,6 +7722,30 @@ const Archives = (() => {
       if (e.key === 'Escape' && document.getElementById('archivePlayer')?.classList.contains('active')) {
         closePlayer();
       }
+    });
+
+    // Delete button
+    document.getElementById('archiveDeleteBtn')?.addEventListener('click', async () => {
+      if (!currentArchive) return;
+      if (!confirm('Delete this archive? This cannot be undone.')) return;
+      try {
+        const base = getRelayHttpBase();
+        const resp = await fetch(`${base}/archives/${currentArchive.id}/delete`, { method: 'POST' });
+        if (resp.ok) {
+          archiveList = archiveList.filter(a => a.id !== currentArchive.id);
+          renderArchives();
+          closePlayer();
+        } else {
+          alert('Failed to delete archive');
+        }
+      } catch (e) {
+        alert('Delete failed: ' + e.message);
+      }
+    });
+
+    // Embed button
+    document.getElementById('archiveEmbedBtn')?.addEventListener('click', () => {
+      if (currentArchive) copyEmbedCode('archive', currentArchive.id);
     });
 
     // Load archives on init
@@ -7705,6 +7875,8 @@ const Archives = (() => {
 
     if (!player || !video) return;
 
+    currentArchive = archive;
+
     // Set info
     if (titleEl) titleEl.textContent = archive.title || 'Untitled Stream';
     if (metaEl) {
@@ -7726,10 +7898,30 @@ const Archives = (() => {
       : `${base}/archives/${archive.id}/recording.webm`;
 
     video.src = videoUrl;
-    video.load(); // Explicitly load the video
+    video.load();
+
+    // Download button
+    const dlBtn = document.getElementById('archiveDownloadBtn');
+    if (dlBtn) {
+      dlBtn.href = videoUrl;
+      dlBtn.download = `${(archive.title || 'recording').replace(/[^a-z0-9_-]/gi, '_')}.webm`;
+    }
+
+    // Delete button — only show for own archives
+    const delBtn = document.getElementById('archiveDeleteBtn');
+    if (delBtn) {
+      delBtn.style.display = archive.broadcaster?.pubkey === Identity.getPubkey() ? '' : 'none';
+    }
 
     player.classList.add('active');
-    // Don't auto-play - let user use native controls
+
+    // Auto-play if setting enabled
+    if (Settings.shouldAutoPlay()) {
+      video.play().catch(() => {
+        video.muted = true;
+        video.play().catch(() => {});
+      });
+    }
   }
 
   function closePlayer() {
@@ -7743,6 +7935,7 @@ const Archives = (() => {
     if (player) {
       player.classList.remove('active');
     }
+    currentArchive = null;
   }
 
   function formatDuration(seconds) {
@@ -7786,6 +7979,163 @@ const Archives = (() => {
     openPlayer
   };
 })();
+
+// --- Chat Module ---
+const Chat = (() => {
+  const MAX_MESSAGES = 100;
+  let messages = [];
+  let currentStreamId = null;
+  let isOpen = false;
+
+  function init() {
+    document.getElementById('chatToggleBtn')?.addEventListener('click', toggle);
+    document.getElementById('closeChatBtn')?.addEventListener('click', close);
+    document.getElementById('chatSendBtn')?.addEventListener('click', () => {
+      const input = document.getElementById('chatInput');
+      if (input?.value.trim()) {
+        sendMessage(input.value.trim());
+        input.value = '';
+      }
+    });
+    document.getElementById('chatInput')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('chatSendBtn')?.click();
+      }
+    });
+    // Embed share button (in viewer controls)
+    document.getElementById('embedShareBtn')?.addEventListener('click', () => {
+      const streamId = RTC.getStreamId();
+      if (streamId) copyEmbedCode('stream', streamId);
+    });
+  }
+
+  function open(streamId) {
+    // If switching streams, clear messages
+    if (streamId !== currentStreamId) {
+      messages = [];
+      const msgContainer = document.getElementById('chatMessages');
+      if (msgContainer) msgContainer.innerHTML = '';
+    }
+    currentStreamId = streamId;
+    isOpen = true;
+    const panel = document.getElementById('chatPanel');
+    if (panel) panel.classList.add('open');
+  }
+
+  function close() {
+    isOpen = false;
+    currentStreamId = null;
+    const panel = document.getElementById('chatPanel');
+    if (panel) panel.classList.remove('open');
+  }
+
+  function toggle() {
+    if (isOpen) close();
+    else if (currentStreamId) open(currentStreamId);
+  }
+
+  function addMessage(msg) {
+    if (!msg.text || !msg.pubkey) return;
+    if (typeof BlockList !== 'undefined' && BlockList.isBlocked(msg.pubkey)) return;
+    if (msg.streamId && msg.streamId !== currentStreamId) return;
+
+    messages.push(msg);
+    if (messages.length > MAX_MESSAGES) messages.shift();
+
+    const container = document.getElementById('chatMessages');
+    if (!container) return;
+
+    const el = document.createElement('div');
+    el.className = 'chat-msg';
+    const shortKey = msg.pubkey.slice(0, 8);
+    const isOwn = msg.pubkey === Identity.getPubkey();
+    el.innerHTML = `<span class="chat-author" data-pubkey="${msg.pubkey}" title="${msg.pubkey}">${isOwn ? 'You' : shortKey}</span><span class="chat-text"></span>`;
+    el.querySelector('.chat-text').textContent = msg.text;
+
+    // Block on author click (not self)
+    if (!isOwn) {
+      el.querySelector('.chat-author').addEventListener('click', () => {
+        if (confirm(`Block user ${shortKey}...?`)) {
+          BlockList.block(msg.pubkey);
+          // Remove their messages from view
+          container.querySelectorAll(`[data-pubkey="${msg.pubkey}"]`).forEach(a => {
+            a.closest('.chat-msg')?.remove();
+          });
+        }
+      });
+    }
+
+    container.appendChild(el);
+    // Auto-scroll if near bottom
+    if (container.scrollHeight - container.scrollTop - container.clientHeight < 100) {
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Trim DOM if too many
+    while (container.children.length > MAX_MESSAGES) {
+      container.removeChild(container.firstChild);
+    }
+  }
+
+  function sendMessage(text) {
+    if (!currentStreamId || !text) return;
+    Discovery.send({ type: 'chat', streamId: currentStreamId, text, pubkey: Identity.getPubkey() });
+  }
+
+  function setStreamId(id) { currentStreamId = id; }
+
+  return { init, open, close, toggle, addMessage, sendMessage, setStreamId };
+})();
+
+// --- BlockList Module ---
+const BlockList = (() => {
+  const STORAGE_KEY = 'oneye:blocklist';
+  let blocked = new Set();
+
+  function load() {
+    try {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      blocked = new Set(data);
+    } catch { blocked = new Set(); }
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...blocked]));
+  }
+
+  function block(pubkey) {
+    blocked.add(pubkey);
+    save();
+  }
+
+  function unblock(pubkey) {
+    blocked.delete(pubkey);
+    save();
+  }
+
+  function isBlocked(pubkey) { return blocked.has(pubkey); }
+  function getBlocked() { return [...blocked]; }
+
+  // Init on load
+  load();
+
+  return { block, unblock, isBlocked, getBlocked };
+})();
+
+// --- Embed Share Helper ---
+function copyEmbedCode(type, id) {
+  const relay = Discovery.getCurrentRelay();
+  if (!relay) return;
+  const httpBase = relay.replace(/^ws(s?):\/\//, 'http$1://').replace(/\/$/, '');
+  const src = `${httpBase}/embed/#id=${encodeURIComponent(id)}&relay=${encodeURIComponent(relay)}&dest=${type}`;
+  const iframe = `<iframe src="${src}" width="640" height="360" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
+  navigator.clipboard.writeText(iframe).then(() => {
+    alert('Embed code copied to clipboard!');
+  }).catch(() => {
+    prompt('Copy this embed code:', iframe);
+  });
+}
 
 // --- UI Module ---
 const UI = (() => {
@@ -8336,6 +8686,7 @@ const UI = (() => {
       viewerOverlay.classList.add('active');
       RTC.startViewing(presence.stream.id);
       Amplify.setStreamInfo(presence);
+      Chat.setStreamId(presence.stream.id);
     });
 
     return card;
@@ -8394,6 +8745,7 @@ const UI = (() => {
     viewerOverlay.classList.remove('active');
     viewerOverlay.classList.remove('ended');
     remoteVideo.srcObject = null;
+    Chat.close();
   }
 
   function updateViewerCount(streamId, count) {
@@ -8530,6 +8882,9 @@ async function init() {
   };
   Discovery.onDisconnected = () => UI.setConnected(false);
   Discovery.onStreamAvailable = (presence) => {
+    // Skip blocked users
+    if (BlockList.isBlocked(presence.pubkey)) return;
+
     // Add to UI
     UI.addStream(presence);
     Archives.updateLiveCount(Discovery.getStreams().length);
@@ -8567,6 +8922,10 @@ async function init() {
   };
   Discovery.onSignal = (msg) => RTC.handleSignal(msg);
   Discovery.onCandidate = (msg) => RTC.handleCandidate(msg);
+  Discovery.onChat = (msg) => Chat.addMessage(msg);
+
+  // Initialize chat module
+  Chat.init();
 
   // Initialize archives module
   await Archives.init();

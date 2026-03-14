@@ -52,7 +52,17 @@ werift MediaRecorder → raw WebM (broken headers) → ffmpeg remux (`-c copy`) 
 - `disableNtp: true, disableLipSync: true` required — NTP timing waits for RTCP SRs that may never arrive on short streams
 - Remux happens in `finalizeRecording()` after recorder stops
 
-## Recent Changes (Jan 2025)
+## Recent Changes (Mar 2026)
+
+### claudes-causes Release
+- Chat: server relay + client panel (Chat IIFE, `Discovery.onChat`)
+- BlockList: localStorage `oneye:blocklist`, guards streams + chat
+- Archive management: delete (POST), download, embed buttons
+- Embeddable player: `/embed` route, hash params (`id`, `relay`, `dest`)
+- CORS preflight: OPTIONS 204 (Cloudflare intercepts — use POST not DELETE)
+- CSP: `media-src https:` for cross-origin video
+
+## Previous Changes (Jan 2025)
 
 ### Discovery Navigation System
 - Collapsible sidebar with categories, tags, map

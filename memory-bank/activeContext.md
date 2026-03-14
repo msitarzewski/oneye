@@ -2,33 +2,36 @@
 
 ## Current State (2026-03-13)
 
-### Recently Completed: Recording Playback Fixes & Archive UI
+### Recently Completed: claudes-causes Release
 
-Fixed server-side stream recording and improved archive player UI.
+Major feature release adding chat, archive management, block/mute, embeddable player, and CORS fixes.
 
-#### Recording Fixes
-- werift MediaRecorder writes WebM with unknown segment size and no Cues — browsers can't seek or determine duration
-- Added ffmpeg remux step in `finalizeRecording()` to rewrite proper headers after recording stops (`server.js:~880`)
-- Disabled NTP timing (`disableNtp: true, disableLipSync: true`) in MediaRecorder — NtpTimeCallback waits for RTCP Sender Reports which may never arrive on short streams, causing zero video frames
-- Falls back gracefully if ffmpeg unavailable
+#### New Modules
+- **Chat** — IIFE module, server relay (`handleChat`), client panel (300px right side / mobile bottom 50vh), glass morphism, 100 message cap, auto-scroll
+- **BlockList** — IIFE module, `localStorage` backed (`oneye:blocklist`), guards `onStreamAvailable` and `Chat.addMessage`
+- **Embed** — `/embed` route serves self-contained HTML (live WebRTC + archive playback), `copyEmbedCode()` helper for iframe snippets
 
-#### Archive UI Fixes
-- Switched `.archive-grid` from CSS `columns` to CSS `grid` — fixes shadow clipping and uneven card spacing
-- Removed duplicate `.archive-card` CSS block (old version at ~line 1748, kept "Enhanced" version at ~line 2970)
-- Consolidated archive player controls into centered top bar above video (`archive-topbar`) — title, meta, and close button in one row, max-width matched to video (900px)
+#### Archive Management
+- Delete: `POST /archives/:id/delete` (POST not DELETE — Cloudflare intercepts OPTIONS and strips DELETE from allowed methods)
+- Download: native `<a download>` button
+- Embed: copy iframe snippet button
+- Auto-play: gated behind `Settings.shouldAutoPlay()`
+- Broken recordings < 1KB auto-cleaned in `finalizeRecording()`
+- Track metadata (`tracks.video`, `tracks.audio`) added to recording metadata
 
-#### Archive Relay URL Fix
-- Archive fetching, thumbnails, and video URLs used relative paths (`/archives`, `/${thumbnail}`) — only worked when served from relay
-- Added `getRelayHttpBase()` in Archives module — derives HTTP base URL from WS relay URL (`wss://` → `https://`)
-- All archive resource URLs now absolute: `${base}/archives`, `${base}/${thumbnail}`, `${base}/${storage.path}`
-- Archives reload after relay connection established (`Discovery.onConnected`)
-- `docs/index.html` kept in sync with `index.html` for GitHub Pages
+#### CORS / CSP Fixes
+- OPTIONS preflight handler with 204 early-return (works for non-Cloudflare, CF intercepts its own)
+- CSP `media-src` now includes `https:` for cross-origin video loading from relay
 
 #### Deployment
 - oneye relay running as systemd user service on umacbookpro (`~/.config/systemd/user/oneye.service`)
 - Linger enabled for boot persistence without login
-- Cloudflare caching in front of oe-relay.zerologic.com — may need cache purge after recording remux changes file size
+- Cloudflare in front of oe-relay.zerologic.com — intercepts OPTIONS preflight (reason DELETE was changed to POST)
 - GitHub Pages serves from `docs/index.html` — must be kept in sync with root `index.html`
+
+---
+
+### Previously: Recording Playback Fixes & Archive UI
 
 ---
 
