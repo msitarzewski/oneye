@@ -25,6 +25,27 @@ One HTML file. That's the entire client. No build step, no dependency tree, no a
 
 Viewers don't just watch -- they amplify. Any viewer can restream to YouTube, Facebook, TikTok through OBS or a mobile app. The broadcaster stays anonymous on the decentralized network while amplifiers push the signal into every centralized platform simultaneously. One stream becomes ten. The message gets out.
 
+<div align="center">
+<table>
+<tr>
+<td><img src="docs/screenshots/splash.png" alt="Splash screen" width="400"></td>
+<td><img src="docs/screenshots/live-streams.png" alt="Live streams" width="400"></td>
+</tr>
+<tr>
+<td align="center"><em>Splash screen</em></td>
+<td align="center"><em>Live streams</em></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/map.png" alt="Map view" width="400"></td>
+<td><img src="docs/screenshots/sidebar.png" alt="Sidebar with categories" width="400"></td>
+</tr>
+<tr>
+<td align="center"><em>Map view</em></td>
+<td align="center"><em>Sidebar with categories</em></td>
+</tr>
+</table>
+</div>
+
 ## Quick Start
 
 ### Run a Relay
