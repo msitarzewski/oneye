@@ -2,7 +2,35 @@
 
 ## Current State (2026-03-13)
 
-### Recently Completed: claudes-causes Release
+### Recently Completed: README Makeover, Splash Screen, UX Polish
+
+#### README Rewrite
+- Complete rewrite with cyberpunk/mission-driven tone
+- New header: dramatic tagline, badge row (Node.js, MIT, Single HTML File, PRs Welcome), live demo + repo + sponsor links
+- Mission statement: protest streams, citizen journalism, censorship resistance framing
+- All new features documented: Chat, Archives, Embeddable Player, Block/Mute
+- Updated API section with `chat` WS message, `/archives`, `/archives/:id/delete`, `/embed` endpoints
+- "Nothing is recorded" → "Ephemeral by default. Recording is opt-in."
+
+#### Splash Screen
+- CSS: `.splash-overlay` (fixed, z-index 1200, blur backdrop), `.splash-content` (520px box with accent glow), gradient title, accent lines, styled checkbox/buttons
+- HTML: "// SIGNAL INTERCEPT" subtitle, manifesto text, checkbox + Enter/Disconnect buttons
+- JS: `Splash` IIFE module, `localStorage` gate (`oneye:splash_accepted`), Enter key shortcut, Cancel → `about:blank`
+- `await Splash.show()` gates `init()` — app stays inert until accepted
+
+#### UX Polish
+- Chat auto-opens when clicking a stream card (`Chat.open(streamId)` called on viewer open)
+- Go Live button hidden while viewer overlay is active (`goLiveBtn.style.display = 'none'`)
+- Both changes also apply to deep-link viewing
+
+#### GitHub Sponsor
+- `.github/FUNDING.yml` — enables Sponsor button on repo page
+- README header: Sponsor link next to Live Demo and GitHub
+- App footer: heart icon with tooltip, positioned next to GitHub icon, turns `var(--live)` on hover
+
+---
+
+### Previously: claudes-causes Release
 
 Major feature release adding chat, archive management, block/mute, embeddable player, and CORS fixes.
 

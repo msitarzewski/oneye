@@ -4,7 +4,7 @@
 Decentralized P2P live streaming with distributed amplification. Single-page app with WebRTC streaming via relay servers connected through DHT (Hyperswarm).
 
 ## Tech Stack
-- **Client**: Pure HTML5/JS, WebRTC, single `index.html` (~7200 lines)
+- **Client**: Pure HTML5/JS, WebRTC, single `index.html` (~9200 lines)
 - **Server**: Node.js, werift (WebRTC), Hyperswarm (DHT), ws (WebSocket)
 - **No frameworks** - everything is vanilla JS with IIFE modules
 - **Deployment**: `docs/index.html` = GitHub Pages copy of `index.html` (must stay in sync)
@@ -53,6 +53,13 @@ werift MediaRecorder → raw WebM (broken headers) → ffmpeg remux (`-c copy`) 
 - Remux happens in `finalizeRecording()` after recorder stops
 
 ## Recent Changes (Mar 2026)
+
+### README Makeover + Splash Screen + UX Polish
+- README: complete rewrite with mission-driven tone, all features documented, sponsor link
+- Splash screen: `Splash` IIFE, localStorage gate (`oneye:splash_accepted`), manifesto UI, z-index 1200
+- Chat auto-opens on stream view, Go Live button hidden during viewing
+- `.github/FUNDING.yml` + sponsor heart icon in app footer
+- `docs/index.html` kept in sync
 
 ### claudes-causes Release
 - Chat: server relay + client panel (Chat IIFE, `Discovery.onChat`)

@@ -1,12 +1,29 @@
-# oneye
+<div align="center">
 
-Decentralized P2P live streaming with distributed amplification.
+# `oneye`
 
-**Zero accounts. Zero CDN. Zero tracking. One HTML file.**
+### Uncensorable live streaming. Zero infrastructure. Zero identity. Zero compromise.
 
-**[Try it now](https://msitarzewski.github.io/oneye/)** - no install needed, connects to the public relay automatically.
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![Single HTML File](https://img.shields.io/badge/Client-Single%20HTML%20File-ff3366?style=flat-square)]()
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-a855f7?style=flat-square)](https://github.com/msitarzewski/oneye/pulls)
 
-Broadcast live video to anyone. Viewers can "amplify" your stream by restreaming to YouTube, Facebook, TikTok - creating a distributed amplification network.
+**[Live Demo](https://msitarzewski.github.io/oneye/)** | **[GitHub](https://github.com/msitarzewski/oneye)** | **[Sponsor](https://github.com/sponsors/msitarzewski)**
+
+</div>
+
+---
+
+## The Mission
+
+Somewhere right now, someone is pointing a phone at something the world needs to see. A protest. A disaster. An act of power that was never meant to be witnessed. The stream goes up, the platform takes it down. Account suspended. Evidence gone.
+
+oneye exists because live video should not require permission. No sign-up forms. No terms of service. No content moderation team in a corporate office deciding what counts as news. You open a browser, you go live. Your identity is a cryptographic keypair that lives and dies in your browser tab. The relay you connect to is one node in a self-organizing mesh -- kill one, the others keep running.
+
+One HTML file. That's the entire client. No build step, no dependency tree, no app store approval. Serve it from a USB stick, a Raspberry Pi, a borrowed VPS, or open it directly from GitHub Pages. The relay is a single Node.js process. Clone. Install. Run. You're broadcasting.
+
+Viewers don't just watch -- they amplify. Any viewer can restream to YouTube, Facebook, TikTok through OBS or a mobile app. The broadcaster stays anonymous on the decentralized network while amplifiers push the signal into every centralized platform simultaneously. One stream becomes ten. The message gets out.
 
 ## Quick Start
 
@@ -17,14 +34,14 @@ npm install
 node server.js
 ```
 
-The relay starts on port 3000 by default and shows all available network interfaces:
+The relay binds to port 3000 and prints every available network interface:
 
 ```
 [oneye] Relay listening on http://0.0.0.0:3000
 [oneye] LAN: http://192.168.1.144:3000
 ```
 
-**Configuration** (copy `config.json.example` to `config.json`):
+**Configuration** -- copy `config.json.example` to `config.json`:
 
 ```json
 {
@@ -38,7 +55,7 @@ The relay starts on port 3000 by default and shows all available network interfa
 
 Environment variables override `config.json`: `PORT`, `HOST`, `PUBLIC_URL`, `ALLOWED_ORIGINS`, `MAX_WS_CONNECTIONS`.
 
-**TURN server** (optional, for NAT traversal): `TURN_URL`, `TURN_USERNAME`, `TURN_CREDENTIAL` — or set `turnUrl`, `turnUsername`, `turnCredential` in `config.json`. See [TURN Server](#turn-server-optional) below.
+**TURN server** (optional, for NAT traversal): `TURN_URL`, `TURN_USERNAME`, `TURN_CREDENTIAL` -- or set `turnUrl`, `turnUsername`, `turnCredential` in `config.json`. See [TURN Server](#turn-server-optional) below.
 
 ### Go Live
 
@@ -91,63 +108,75 @@ flowchart TB
     style centralized fill:#1a1a2e,stroke:#ff3366,color:#fff
 ```
 
-**Key components:**
-- **Relay/SFU**: Receives streams from broadcasters, forwards to viewers. Relays discover each other via DHT (Hyperswarm).
-- **Broadcaster**: Captures camera/mic, sends to relay via WebRTC.
-- **Viewer**: Receives stream from relay (or via mesh from other viewers).
-- **Amplifier**: A viewer who restreams to centralized platforms using OBS or mobile apps. Broadcaster stays decentralized; amplifiers bridge to YouTube/Facebook/TikTok independently.
+The system has three layers:
+
+- **Relay (SFU)** -- Receives streams from broadcasters and forwards them to viewers. Relays discover each other automatically via DHT (Hyperswarm). No registry. No coordinator. They find each other.
+- **Broadcaster** -- Captures camera and mic, pushes to the nearest relay over WebRTC.
+- **Viewer** -- Pulls the stream from any relay in the network. High-bandwidth viewers can forward to peers, reducing relay load.
+- **Amplifier** -- A viewer who restreams to centralized platforms through OBS or a mobile app. The broadcaster stays decentralized and anonymous. Amplifiers bridge to YouTube, Facebook, and TikTok independently.
 
 ## Features
 
 ### Self-Discovering Network
-Deploy a relay anywhere. It automatically joins the global network via DHT. No configuration needed.
+Deploy a relay anywhere. It joins the global mesh via DHT automatically. No configuration. No coordination. It just works.
 
 ### Cross-Relay Streaming
-Streams announced on Relay A are visible on Relay B. Viewers can watch streams from any relay in the network.
+Streams announced on Relay A are visible on Relay B. Every relay sees everything. Viewers watch from whichever node they connect to.
+
+### Chat
+Real-time WebSocket chat built into every stream. Messages travel through the relay alongside video. No accounts required -- your keypair is your identity.
+
+### Archives
+Server-side recording, opt-in per stream. Broadcasts are ephemeral by default. When recording is enabled, archives are browseable in the built-in archive library and playable on demand.
+
+### Embeddable Player
+Every live stream and archived recording gets an iframe embed code. Drop it into any page. The player handles connection, quality adaptation, and playback automatically.
+
+### Block / Mute
+Client-side user blocking by pubkey. Block a user and their streams, chat messages, and presence disappear from your view. Runs entirely in the browser -- no server involvement, no moderation authority.
 
 ### Mesh Forwarding
-High-bandwidth viewers can optionally forward streams to other viewers, reducing relay load. Auto-enabled on WiFi with good battery.
+High-bandwidth viewers can forward streams to other viewers, reducing relay load. Auto-enabled on WiFi with good battery.
 
 ### Bandwidth Adaptation
-Broadcasters encode in multiple quality layers (simulcast). Viewers receive the layer matching their bandwidth.
+Broadcasters encode in multiple quality layers (simulcast). Viewers receive the layer matching their connection. Quality degrades gracefully, never drops entirely.
 
 ### Distributed Amplification
-Supporters can independently restream to YouTube, Facebook, TikTok, and Instagram. The broadcaster stays on oneye (decentralized, ephemeral) while amplifiers spread the message through centralized platforms. Multiple amplifiers = wider reach.
+Supporters independently restream to YouTube, Facebook, TikTok, and Instagram. The broadcaster stays on oneye -- decentralized, ephemeral -- while amplifiers push the signal through centralized platforms. Multiple amplifiers multiply reach.
 
 ### Map View
-See streams on an interactive map. Broadcasters can optionally share their location with configurable precision (exact, neighborhood, city, or region). Theme-aware map tiles adapt to light/dark mode.
+See active streams on an interactive map. Broadcasters can share location with configurable precision: exact, neighborhood, city, or region. Theme-aware tiles adapt to light and dark mode.
 
-### Settings & Preferences
+### Privacy by Design
+- **Ephemeral by default. Recording is opt-in.** When a stream ends, it's gone -- unless the broadcaster explicitly enabled archiving.
+- **No accounts.** Your identity is a keypair stored in your browser. Close the tab, it's gone.
+- **No tracking.** No analytics, no cookies, no persistent data on relays.
+- **Location control.** Choose exact, neighborhood, city, or region-level precision. Or share nothing.
+
+### Settings and Preferences
 User preferences persist in localStorage:
-- **Theme**: System, Dark, or Light mode with full light theme support
+- **Theme**: System, Dark, or Light mode
 - **Auto-play**: Control whether streams play automatically
 - **Location**: Remember location permission and default precision
 - **Notifications**: Browser notifications for new streams
 - **Default View**: Start with Live Streams, Archives, or Map
 
-### Mobile-First Design
-- **Hamburger menu**: Full navigation on mobile with Live/Archives/Map tabs
-- **Categories grid**: Browse categories in a 2-column layout
-- **Touch-friendly**: Tap-to-toggle tooltips and responsive controls
-- **Adaptive UI**: Sidebar collapses to icons, expands on interaction
-
 ### Broadcast Setup
 Before going live, configure your stream:
 - Set a title
 - Choose categories and add custom tags
-- Enable/disable location sharing
-- Select location precision level
+- Enable/disable location sharing and precision
 - Enable server-side recording (optional)
 
-### Privacy by Design
-- **Ephemeral**: Streams exist only while live. Nothing is recorded.
-- **No accounts**: Your identity is a keypair stored in your browser.
-- **No tracking**: No analytics, no cookies, no persistent data on relays.
-- **Location control**: Choose exact, neighborhood, city, or region-level precision.
+### Mobile-First Design
+- Hamburger menu with full navigation on mobile
+- Category grid in a 2-column layout
+- Tap-to-toggle tooltips and responsive controls
+- Sidebar collapses to icons, expands on interaction
 
 ## Amplify a Stream
 
-Help spread the message by restreaming to YouTube, Facebook, TikTok, or Instagram.
+Help spread the signal by restreaming to YouTube, Facebook, TikTok, or Instagram.
 
 ### Desktop (OBS Studio)
 
@@ -174,50 +203,50 @@ Help spread the message by restreaming to YouTube, Facebook, TikTok, or Instagra
 
 ### Amplify Mode Features
 
-- **Pop Out**: Opens a clean, borderless window optimized for OBS capture
-- **Picture-in-Picture**: Floats video over other windows
-- **Fullscreen**: Native fullscreen for full display capture
-- **Quality Selector**: Choose 720p/360p/180p based on your bandwidth
-- **Stream Info**: Press **I** in amplify mode to toggle stream title overlay
+- **Pop Out** -- Clean, borderless window optimized for OBS capture
+- **Picture-in-Picture** -- Floats video over other windows
+- **Fullscreen** -- Native fullscreen for full display capture
+- **Quality Selector** -- Choose 720p/360p/180p based on your bandwidth
+- **Stream Info** -- Press **I** in amplify mode to toggle stream title overlay
 
 ### Tips for Amplifiers
 
-- Use **720p** quality for best restream quality
-- Close other apps to reduce CPU usage
-- Use wired connection if possible (ethernet > WiFi > cellular)
-- Multiple amplifiers = wider reach. Coordinate!
+- Use **720p** for best restream quality
+- Close other apps to reduce CPU load
+- Wired connection preferred (ethernet > WiFi > cellular)
+- Multiple amplifiers = wider reach. Coordinate.
 
 ### Recommended Apps
 
 **Desktop:**
-- OBS Studio (Free, open source) - Best for window capture
-- Streamlabs Desktop (Free) - Simpler UI than OBS
+- OBS Studio (Free, open source) -- Best for window capture
+- Streamlabs Desktop (Free) -- Simpler UI than OBS
 
 **Mobile:**
-- Prism Live Studio (Free) - Multi-platform restreaming
-- Streamlabs Mobile (Free) - Easy setup
-- Restream (Freemium) - Web-based, multistreams
+- Prism Live Studio (Free) -- Multi-platform restreaming
+- Streamlabs Mobile (Free) -- Easy setup
+- Restream (Freemium) -- Web-based, multistreams
 
 ## Network Discovery
 
-Clients find relays through multiple methods (in priority order):
+Clients find relays through multiple methods, in priority order:
 
-1. **URL hash**: `https://example.com/#relay=wss://relay.example.com`
-2. **Bootstrap**: Fetches relay list from GitHub Pages ([`relays.json`](docs/relays.json)) - update this file when relays change
-3. **Well-known**: `/.well-known/oneye.json` on the current domain
-4. **DNS TXT**: `_oneye.example.com` TXT records via DNS-over-HTTPS
-5. **Self**: The URL you loaded becomes the relay
+1. **URL hash** -- `https://example.com/#relay=wss://relay.example.com`
+2. **Bootstrap** -- Fetches relay list from GitHub Pages ([`relays.json`](docs/relays.json)). Update this file when relays change.
+3. **Well-known** -- `/.well-known/oneye.json` on the current domain
+4. **DNS TXT** -- `_oneye.example.com` TXT records via DNS-over-HTTPS
+5. **Self** -- The URL you loaded becomes the relay
 
 ## Deploy Your Own Relay
 
-### Local/LAN
+### Local / LAN
 
 ```bash
-git clone <repo>
+git clone https://github.com/msitarzewski/oneye.git
 cd oneye
 npm install
 node server.js
-or PORT=3333 node server.js
+# or: PORT=3333 node server.js
 ```
 
 Share your LAN IP with others on the same network.
@@ -229,7 +258,7 @@ node server.js &
 ngrok http 3000
 ```
 
-Share the ngrok HTTPS URL. WebSocket connections use WSS automatically.
+Share the ngrok HTTPS URL. WebSocket connections upgrade to WSS automatically.
 
 ### Production
 
@@ -239,11 +268,11 @@ cp config.json.example config.json
 node server.js
 ```
 
-Put behind nginx/caddy for TLS termination. Set `publicUrl` in `config.json` so the relay announces its public address to the DHT.
+Put behind nginx or caddy for TLS termination. Set `publicUrl` in `config.json` so the relay announces its public address to the DHT.
 
 ### TURN Server (Optional)
 
-WebRTC requires direct UDP connections between peers. ~15-20% of users are behind symmetric NAT or restrictive firewalls where STUN alone isn't enough. Adding a TURN server provides a relay fallback for these users.
+WebRTC requires direct UDP connections between peers. Roughly 15-20% of users sit behind symmetric NAT or restrictive firewalls where STUN alone fails. A TURN server provides a relay fallback for these users.
 
 Without TURN, affected users will see stream thumbnails but video won't play.
 
@@ -274,7 +303,7 @@ PUBLIC_URL=wss://relay.example.com \
 node server.js
 ```
 
-The relay sends its ICE config (including TURN) to clients on connect. Each relay in the network can run its own TURN server independently.
+The relay sends ICE config (including TURN) to clients on connect. Each relay in the network can run its own TURN server independently.
 
 **Other TURN providers:** Cloudflare Calls TURN (free), metered.ca (free tier), Twilio (paid). Set the env vars to match your provider's credentials.
 
@@ -282,46 +311,44 @@ The relay sends its ICE config (including TURN) to clients on connect. Each rela
 
 ### WebSocket Messages
 
-**Client → Relay:**
-- `subscribe` - Join the network, receive stream list
-- `announce` - Start broadcasting a stream
-- `unannounce` - Stop broadcasting
-- `view` - Request to watch a stream
-- `signal_forward` - WebRTC SDP offer (broadcaster)
-- `answer` - WebRTC SDP answer (viewer)
-- `candidate` - ICE candidate
-- `layer_request` - Request specific quality layer (h/m/l) for simulcast
-- `bandwidth_report` - Report estimated bandwidth for adaptive streaming
+**Client to Relay:**
+- `subscribe` -- Join the network, receive stream list
+- `announce` -- Start broadcasting a stream
+- `unannounce` -- Stop broadcasting
+- `view` -- Request to watch a stream
+- `signal_forward` -- WebRTC SDP offer (broadcaster)
+- `answer` -- WebRTC SDP answer (viewer)
+- `candidate` -- ICE candidate
+- `layer_request` -- Request specific quality layer (`h`/`m`/`l`) for simulcast
+- `bandwidth_report` -- Report estimated bandwidth for adaptive streaming
+- `chat` -- Send a chat message. Fields: `text` (string), `from` (sender pubkey)
 
-**Relay → Client:**
-- `ice_servers` - ICE configuration (STUN + TURN if configured), sent on connect
-- `welcome` / `subscribed` - Connection confirmed, includes stream and relay lists
-- `stream_available` - New stream announced
-- `stream_gone` - Stream ended
-- `signal` - WebRTC SDP (offer to viewer, answer to broadcaster)
-- `candidate` - ICE candidate
+**Relay to Client:**
+- `ice_servers` -- ICE configuration (STUN + TURN if configured), sent on connect
+- `welcome` / `subscribed` -- Connection confirmed, includes stream and relay lists
+- `stream_available` -- New stream announced
+- `stream_gone` -- Stream ended
+- `signal` -- WebRTC SDP (offer to viewer, answer to broadcaster)
+- `candidate` -- ICE candidate
+- `chat` -- Relayed chat message with `text`, `from`, and `streamId`
 
 ### HTTP Endpoints
 
-- `GET /` - Serve the app
-- `GET /health` - JSON status: `{ ok, streams, clients, relays }`
-- `GET /relays` - List of known relays
-- `GET /.well-known/oneye.json` - Relay discovery endpoint
-
-## Philosophy
-
-- **Ephemeral**: Nothing persists. When a stream ends, it's gone.
-- **Decentralized**: No central authority. Anyone can run a relay.
-- **Simple**: One HTML file, one JS file. No build step for the client.
-- **Private**: No accounts, no tracking, no data collection.
+- `GET /` -- Serve the app
+- `GET /health` -- JSON status: `{ ok, streams, clients, relays }`
+- `GET /relays` -- List of known relays
+- `GET /.well-known/oneye.json` -- Relay discovery endpoint
+- `GET /archives` -- List available archived recordings
+- `POST /archives/:id/delete` -- Delete an archived recording
+- `GET /embed` -- Embeddable player page for streams and archives
 
 ## License
 
-MIT - See [LICENSE](LICENSE)
+MIT -- See [LICENSE](LICENSE)
 
 ### Bundled Libraries
 
-All dependencies are inlined - no external CDN requests:
+All dependencies are inlined. No external CDN requests:
 
-- **QRCode.js** - MIT License - [github.com/davidshimjs/qrcodejs](https://github.com/davidshimjs/qrcodejs)
-- **werift-webrtc** - MIT License - [github.com/shinyoshiaki/werift-webrtc](https://github.com/shinyoshiaki/werift-webrtc)
+- **QRCode.js** -- MIT License -- [github.com/davidshimjs/qrcodejs](https://github.com/davidshimjs/qrcodejs)
+- **werift-webrtc** -- MIT License -- [github.com/shinyoshiaki/werift-webrtc](https://github.com/shinyoshiaki/werift-webrtc)
